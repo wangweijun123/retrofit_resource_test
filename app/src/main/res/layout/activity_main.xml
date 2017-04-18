@@ -45,4 +45,18 @@
         android:onClick="doPostFileAndParams"
         android:text="post 文件与参数" />
 
+    <Button
+        android:id="@+id/button6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="JsonAndXmlConverters"
+        android:text="简析json和xml" />
+
+    <Button
+        android:id="@+id/button7"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="SimpleMockService"
+        android:text="模拟服务器mock service" />
+
 </LinearLayout>

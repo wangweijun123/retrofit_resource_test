@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.retrofit.SimpleMockService;
 import com.example.retrofit.SimpleService;
 import com.example.retrofit.StoreService;
 
@@ -103,6 +104,34 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
+
+    public void SimpleMockService(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    SimpleMockService.main();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
+//    public void JsonAndXmlConverters(View v) {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    JsonAndXmlConverters.main();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+//    }
 
     private boolean addPermission(Context context, String permission) {
         if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
