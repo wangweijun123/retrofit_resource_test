@@ -16,6 +16,8 @@
  */
 package okhttp3.internal.connection;
 
+import android.util.Log;
+
 import java.io.IOException;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -23,6 +25,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.internal.http.HttpCodec;
 import okhttp3.internal.http.RealInterceptorChain;
+import retrofit2.Retrofit;
 
 /** Opens a connection to the target server and proceeds to the next interceptor. */
 public final class ConnectInterceptor implements Interceptor {
@@ -33,6 +36,7 @@ public final class ConnectInterceptor implements Interceptor {
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
+    Log.i(Retrofit.TAG, this + " intercept start ...");
     RealInterceptorChain realChain = (RealInterceptorChain) chain;
     Request request = realChain.request();
     StreamAllocation streamAllocation = realChain.streamAllocation();
@@ -42,6 +46,8 @@ public final class ConnectInterceptor implements Interceptor {
     HttpCodec httpCodec = streamAllocation.newStream(client, doExtensiveHealthChecks);
     RealConnection connection = streamAllocation.connection();
 
-    return realChain.proceed(request, streamAllocation, httpCodec, connection);
+    Response response = realChain.proceed(request, streamAllocation, httpCodec, connection);
+    Log.i(Retrofit.TAG, this + " intercept end");
+    return response;
   }
 }

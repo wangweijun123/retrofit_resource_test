@@ -26,6 +26,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    public void getByHttpsSync(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    SimpleService.syncRequest();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
     /**
      * 同步请求
      * @param v
@@ -50,6 +64,45 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    public void doGetByMapAndHeaders(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.doGetByMapAndHeaders();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public void doPost(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.doPost();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
+    public void doPostFileAndParams(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.doPostFileAndParams();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
     private boolean addPermission(Context context, String permission) {
         if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {

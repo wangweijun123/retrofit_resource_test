@@ -15,6 +15,8 @@
  */
 package okhttp3.internal.http;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.ProtocolException;
 import okhttp3.Interceptor;
@@ -26,6 +28,7 @@ import okhttp3.internal.connection.StreamAllocation;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Sink;
+import retrofit2.Retrofit;
 
 /** This is the last interceptor in the chain. It makes a network call to the server. */
 public final class CallServerInterceptor implements Interceptor {
@@ -36,6 +39,7 @@ public final class CallServerInterceptor implements Interceptor {
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
+    Log.i(Retrofit.TAG, this + " intercept start ...");
     RealInterceptorChain realChain = (RealInterceptorChain) chain;
     HttpCodec httpCodec = realChain.httpStream();
     StreamAllocation streamAllocation = realChain.streamAllocation();
@@ -103,7 +107,7 @@ public final class CallServerInterceptor implements Interceptor {
       throw new ProtocolException(
           "HTTP " + code + " had non-zero Content-Length: " + response.body().contentLength());
     }
-
+    Log.i(Retrofit.TAG, this + " intercept end");
     return response;
   }
 }

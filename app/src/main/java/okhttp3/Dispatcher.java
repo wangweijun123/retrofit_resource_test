@@ -15,6 +15,8 @@
  */
 package okhttp3;
 
+import android.util.Log;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import okhttp3.RealCall.AsyncCall;
 import okhttp3.internal.Util;
+import retrofit2.Retrofit;
 
 /**
  * Policy on when async requests are executed.
@@ -179,6 +182,7 @@ public final class Dispatcher {
   /** Used by {@code Call#execute} to signal it is in-flight. */
   synchronized void executed(RealCall call) {
     runningSyncCalls.add(call);
+    Log.i(Retrofit.TAG, "Dispatcher executed ..runningSyncCalls.add(call) size:" + runningSyncCalls.size());
   }
 
   /** Used by {@code AsyncCall#run} to signal completion. */
@@ -196,6 +200,7 @@ public final class Dispatcher {
     Runnable idleCallback;
     synchronized (this) {
       if (!calls.remove(call)) throw new AssertionError("Call wasn't in-flight!");
+      Log.i(Retrofit.TAG, "Dispatcher finished calls.remove(call) size:"+calls.size());
       if (promoteCalls) promoteCalls();
       runningCallsCount = runningCallsCount();
       idleCallback = this.idleCallback;

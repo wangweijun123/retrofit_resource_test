@@ -15,6 +15,8 @@
  */
 package okhttp3;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,8 @@ import okhttp3.internal.http.CallServerInterceptor;
 import okhttp3.internal.http.RealInterceptorChain;
 import okhttp3.internal.http.RetryAndFollowUpInterceptor;
 import okhttp3.internal.platform.Platform;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
 
 import static okhttp3.internal.platform.Platform.INFO;
 
@@ -57,17 +61,20 @@ final class RealCall implements Call {
   }
 
   @Override public Response execute() throws IOException {
+    Log.i(Retrofit.TAG, "RealCall execute ..." + this);
     synchronized (this) {
       if (executed) throw new IllegalStateException("Already Executed");
       executed = true;
     }
     captureCallStackTrace();
     try {
+      Log.i(Retrofit.TAG, "RealCall client.dispatcher().executed(this)" );
       client.dispatcher().executed(this);
       Response result = getResponseWithInterceptorChain();
       if (result == null) throw new IOException("Canceled");
       return result;
     } finally {
+      Log.i(Retrofit.TAG, "RealCall client.dispatcher().finished(this)" );
       client.dispatcher().finished(this);
     }
   }
@@ -166,8 +173,13 @@ final class RealCall implements Call {
   }
 
   Response getResponseWithInterceptorChain() throws IOException {
+    Log.i(Retrofit.TAG, "RealCall getResponseWithInterceptorChain ...");
     // Build a full stack of interceptors.
     List<Interceptor> interceptors = new ArrayList<>();
+    // add log interceptor by wangweijun
+    HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+    httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+    interceptors.add(httpLoggingInterceptor);
     interceptors.addAll(client.interceptors());
     interceptors.add(retryAndFollowUpInterceptor);
     interceptors.add(new BridgeInterceptor(client.cookieJar()));
@@ -177,7 +189,8 @@ final class RealCall implements Call {
       interceptors.addAll(client.networkInterceptors());
     }
     interceptors.add(new CallServerInterceptor(forWebSocket));
-
+    Log.i(Retrofit.TAG, "RealCall getResponseWithInterceptorChain forWebSocket:"
+            +forWebSocket+", interceptors.size:"+interceptors.size());
     Interceptor.Chain chain = new RealInterceptorChain(
         interceptors, null, null, null, 0, originalRequest);
     return chain.proceed(originalRequest);

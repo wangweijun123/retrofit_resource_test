@@ -94,12 +94,15 @@ public class StoreService {
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+        Log.i(Retrofit.TAG, "StoreService create service");
         StoreApi service = retrofit.create(StoreApi.class);
+        Log.i(Retrofit.TAG, "StoreService service doGet");
         // pagefrom=1&pagesize=1&code=RANK_HOT";
         Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Log.i(Retrofit.TAG, "StoreService call.execute()");
         Response<MyResp> resp = call.execute();
         MyResp list = resp.body();
-        System.out.println("list status:"+list.status);
+        Log.i(Retrofit.TAG, "list status:"+list.status);
     }
 
     public static void doGetByQueryMap() throws IOException {
@@ -190,7 +193,7 @@ public class StoreService {
         System.out.println("list status:"+list.status);
     }
 
-    public static void doPostFile() throws IOException {
+    public static void doPostFileAndParams() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())

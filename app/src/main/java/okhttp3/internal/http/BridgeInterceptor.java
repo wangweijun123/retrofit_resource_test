@@ -16,6 +16,8 @@
  */
 package okhttp3.internal.http;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.util.List;
 import okhttp3.Cookie;
@@ -29,6 +31,7 @@ import okhttp3.Response;
 import okhttp3.internal.Version;
 import okio.GzipSource;
 import okio.Okio;
+import retrofit2.Retrofit;
 
 import static okhttp3.internal.Util.hostHeader;
 
@@ -45,6 +48,7 @@ public final class BridgeInterceptor implements Interceptor {
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
+    Log.i(Retrofit.TAG, this + " intercept start ...");
     Request userRequest = chain.request();
     Request.Builder requestBuilder = userRequest.newBuilder();
 
@@ -108,7 +112,7 @@ public final class BridgeInterceptor implements Interceptor {
       responseBuilder.headers(strippedHeaders);
       responseBuilder.body(new RealResponseBody(strippedHeaders, Okio.buffer(responseBody)));
     }
-
+    Log.i(Retrofit.TAG, this + " intercept end");
     return responseBuilder.build();
   }
 

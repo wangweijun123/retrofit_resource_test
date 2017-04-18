@@ -16,6 +16,8 @@
  */
 package okhttp3.internal.cache;
 
+import android.util.Log;
+
 import java.io.IOException;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
@@ -35,6 +37,7 @@ import okio.Okio;
 import okio.Sink;
 import okio.Source;
 import okio.Timeout;
+import retrofit2.Retrofit;
 
 import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -50,6 +53,7 @@ public final class CacheInterceptor implements Interceptor {
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
+    Log.i(Retrofit.TAG, this + " intercept start ...");
     Response cacheCandidate = cache != null
         ? cache.get(chain.request())
         : null;
@@ -129,7 +133,7 @@ public final class CacheInterceptor implements Interceptor {
       CacheRequest cacheRequest = maybeCache(response, networkResponse.request(), cache);
       response = cacheWritingResponse(cacheRequest, response);
     }
-
+    Log.i(Retrofit.TAG, this + " intercept end");
     return response;
   }
 

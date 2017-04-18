@@ -8,23 +8,41 @@
     android:gravity="center_horizontal"
     tools:context="com.example.wangweijun1.retrofit_xxx.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="syncRequest"
-        android:text="syncRequest"
         tools:layout_editor_absoluteX="147dp"
         tools:layout_editor_absoluteY="27dp"
-        tools:text="syncRequest" />
+        android:text="同步请求"/>
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="doGetByMapAndHeaders"
+        android:text="查询参数与headers使用map get请求"/>
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="doPost"
+        android:text="post 请求"/>
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="getByHttpsSync"
+        android:text="测试https" />
+
+    <Button
+        android:id="@+id/button5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="doPostFileAndParams"
+        android:text="post 文件与参数" />
 
 </LinearLayout>

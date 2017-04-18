@@ -15,6 +15,8 @@
  */
 package okhttp3.internal.http;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.HttpRetryException;
@@ -39,6 +41,7 @@ import okhttp3.Route;
 import okhttp3.internal.connection.RouteException;
 import okhttp3.internal.connection.StreamAllocation;
 import okhttp3.internal.http2.ConnectionShutdownException;
+import retrofit2.Retrofit;
 
 import static java.net.HttpURLConnection.HTTP_CLIENT_TIMEOUT;
 import static java.net.HttpURLConnection.HTTP_MOVED_PERM;
@@ -101,8 +104,8 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
+    Log.i(Retrofit.TAG, this + " intercept start ...");
     Request request = chain.request();
-
     streamAllocation = new StreamAllocation(
         client.connectionPool(), createAddress(request.url()), callStackTrace);
 
@@ -138,6 +141,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
           streamAllocation.streamFailed(null);
           streamAllocation.release();
         }
+        Log.i(Retrofit.TAG, this + " intercept finally ...");
       }
 
       // Attach the prior response if it exists. Such responses never have a body.
@@ -155,6 +159,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
         if (!forWebSocket) {
           streamAllocation.release();
         }
+        Log.i(Retrofit.TAG, this + " intercept end ...");
         return response;
       }
 
@@ -181,6 +186,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
 
       request = followUp;
       priorResponse = response;
+      Log.i(Retrofit.TAG, this + " intercept end");
     }
   }
 

@@ -69,6 +69,7 @@ public final class RealInterceptorChain implements Interceptor.Chain {
 
   public Response proceed(Request request, StreamAllocation streamAllocation, HttpCodec httpCodec,
       RealConnection connection) throws IOException {
+
     if (index >= interceptors.size()) throw new AssertionError();
 
     calls++;
