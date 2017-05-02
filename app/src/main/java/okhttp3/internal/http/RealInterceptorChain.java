@@ -72,13 +72,17 @@ public final class RealInterceptorChain implements Interceptor.Chain {
 
   public Response proceed(Request request, StreamAllocation streamAllocation, HttpCodec httpCodec,
       RealConnection connection) throws IOException {
-    Log.i(Retrofit.TAG, this + " proceed end");
+    Log.i(Retrofit.TAG, this + " proceed request:"+request+", streamAllocation:"+streamAllocation
+    +", httpCodec:"+httpCodec+", connection:"+connection);
+    Log.i(Retrofit.TAG, "index:"+index+ ", interceptors.size():"+interceptors.size());
     if (index >= interceptors.size()) throw new AssertionError();
 
     calls++;
-
+    Log.i(Retrofit.TAG, "calls:" + calls + ", this.httpCodec != null : "+(this.httpCodec != null));
     // If we already have a stream, confirm that the incoming request will use it.
     if (this.httpCodec != null && !this.connection.supportsUrl(request.url())) {
+      Log.i(Retrofit.TAG, "this.httpCodec != null && !this.connection.supportsUrl(request.url()):"+
+              (this.httpCodec != null && !this.connection.supportsUrl(request.url())));
       throw new IllegalStateException("network interceptor " + interceptors.get(index - 1)
           + " must retain the same host and port");
     }

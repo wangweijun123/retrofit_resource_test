@@ -107,7 +107,7 @@ final class OkHttpCall<T> implements Call<T> {
           throws IOException {
         Response<T> response;
         try {
-          Log.i(Retrofit.TAG, this + "enque parseResponse...");
+          Log.i(Retrofit.TAG, this + "enque parseResponse...thread id:"+Thread.currentThread().getId());
           response = parseResponse(rawResponse);
           Log.i(Retrofit.TAG, this + "enque parseResponse end");
         } catch (Throwable e) {
@@ -135,6 +135,7 @@ final class OkHttpCall<T> implements Call<T> {
 
       private void callSuccess(Response<T> response) {
         try {
+          Log.i(Retrofit.TAG, callback + " callSuccess thread id:"+Thread.currentThread().getId());
           callback.onResponse(OkHttpCall.this, response);
         } catch (Throwable t) {
           t.printStackTrace();

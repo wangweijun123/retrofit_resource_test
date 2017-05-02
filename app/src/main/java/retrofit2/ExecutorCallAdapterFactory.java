@@ -15,6 +15,8 @@
  */
 package retrofit2;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -63,6 +65,7 @@ final class ExecutorCallAdapterFactory extends CallAdapter.Factory {
         @Override public void onResponse(Call<T> call, final Response<T> response) {
           callbackExecutor.execute(new Runnable() {
             @Override public void run() {
+              Log.i(Retrofit.TAG, this+" callback:"+callback + ", thread id:"+Thread.currentThread().getId());
               if (delegate.isCanceled()) {
                 // Emulate OkHttp's behavior of throwing/delivering an IOException on cancellation.
                 callback.onFailure(ExecutorCallbackCall.this, new IOException("Canceled"));

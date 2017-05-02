@@ -18,6 +18,8 @@ package retrofit2;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
@@ -33,10 +35,12 @@ class Platform {
     try {
       Class.forName("android.os.Build");
       if (Build.VERSION.SDK_INT != 0) {
+        Log.i(Retrofit.TAG, Platform.class + " new Android()");
         return new Android();
       }
     } catch (ClassNotFoundException ignored) {
     }
+    Log.i(Retrofit.TAG, Platform.class + " new Platform()");
     return new Platform();
   }
 

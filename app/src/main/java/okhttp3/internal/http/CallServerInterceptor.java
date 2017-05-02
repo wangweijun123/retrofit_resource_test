@@ -50,6 +50,8 @@ public final class CallServerInterceptor implements Interceptor {
     httpCodec.writeRequestHeaders(request);
 
     Response.Builder responseBuilder = null;
+    Log.i(Retrofit.TAG,"request.method():"+request.method() + ", request.body() != null :"+(request.body() != null));
+    Log.i(Retrofit.TAG, "HttpMethod.permitsRequestBody(request.method() :"+(HttpMethod.permitsRequestBody(request.method())));
     if (HttpMethod.permitsRequestBody(request.method()) && request.body() != null) {
       // If there's a "Expect: 100-continue" header on the request, wait for a "HTTP/1.1 100
       // Continue" response before transmitting the request body. If we don't get that, return what
@@ -78,15 +80,14 @@ public final class CallServerInterceptor implements Interceptor {
     if (responseBuilder == null) {
       responseBuilder = httpCodec.readResponseHeaders(false);
     }
-
     Response response = responseBuilder
         .request(request)
         .handshake(streamAllocation.connection().handshake())
         .sentRequestAtMillis(sentRequestMillis)
         .receivedResponseAtMillis(System.currentTimeMillis())
         .build();
-
     int code = response.code();
+    Log.i(Retrofit.TAG,"code:"+ code + ", response :"+response);
     if (forWebSocket && code == 101) {
       // Connection is upgrading, but we need to ensure interceptors see a non-null response body.
       response = response.newBuilder()
