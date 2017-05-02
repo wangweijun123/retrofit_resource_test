@@ -72,6 +72,7 @@ final class RealCall implements Call {
       client.dispatcher().executed(this);
       Response result = getResponseWithInterceptorChain();
       if (result == null) throw new IOException("Canceled");
+      Log.i(Retrofit.TAG, this+" return result");
       return result;
     } finally {
       Log.i(Retrofit.TAG, "RealCall client.dispatcher().finished(this)" );
@@ -140,9 +141,11 @@ final class RealCall implements Call {
         Response response = getResponseWithInterceptorChain();
         if (retryAndFollowUpInterceptor.isCanceled()) {
           signalledCallback = true;
+          Log.i(Retrofit.TAG, this + " " + responseCallback + " responseCallback.onFailure()");
           responseCallback.onFailure(RealCall.this, new IOException("Canceled"));
         } else {
           signalledCallback = true;
+          Log.i(Retrofit.TAG, this + " " + responseCallback + " onResponse.onResponse()");
           responseCallback.onResponse(RealCall.this, response);
         }
       } catch (IOException e) {

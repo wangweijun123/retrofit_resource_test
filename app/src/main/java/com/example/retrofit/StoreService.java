@@ -2,18 +2,27 @@ package com.example.retrofit;
 
 import android.util.Log;
 
+import com.google.gson.annotations.JsonAdapter;
+
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.BuiltInConverters;
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Converter;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.helpers.ToStringConverterFactory;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -58,6 +67,17 @@ public class StoreService {
 
         @GET("mapi/edit/recommend")
         Call<MyResp> doGetByMapAndHeaders(@QueryMap Map<String, String> pagefrom, @HeaderMap Map<String, String> headers);
+
+        @GET("mapi/edit/recommend")
+        Call<String> customconverterFactory(@QueryMap Map<String, String> pagefrom, @HeaderMap Map<String, String> headers);
+
+        @GET("mapi/edit/recommend")
+        Call<Void> returnVoidconverterFactory(@QueryMap Map<String, String> pagefrom, @HeaderMap Map<String, String> headers);
+
+
+        @GET("mapi/edit/recommend")
+        Call<String> toStringConverterFactory(@QueryMap Map<String, String> pagefrom, @HeaderMap Map<String, String> headers);
+
 
         @FormUrlEncoded
         @POST("mapi/edit/postrecommend")
@@ -105,6 +125,66 @@ public class StoreService {
         Log.i(Retrofit.TAG, "list status:"+list.status);
     }
 
+    /**
+     * 异步请求
+     * @throws IOException
+     */
+    public static void doGetAsync() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        Log.i(Retrofit.TAG, "StoreService create service");
+        StoreApi service = retrofit.create(StoreApi.class);
+        Log.i(Retrofit.TAG, "StoreService service doGet");
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Log.i(Retrofit.TAG, "StoreService call.execute()");
+        call.enqueue(new Callback<MyResp>() {
+            @Override
+            public void onResponse(Call<MyResp> call, Response<MyResp> response) {
+                MyResp list = response.body();
+                Log.i(Retrofit.TAG, "list status:"+list.status+", tid:"+Thread.currentThread().getId());
+            }
+
+            @Override
+            public void onFailure(Call<MyResp> call, Throwable t) {
+                Log.i(Retrofit.TAG, "onFailure status:");
+            }
+        });
+    }
+
+    /**
+     * 取消请求
+     * @throws IOException
+     */
+    public static void cancelCall() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        Log.i(Retrofit.TAG, "StoreService create service");
+        StoreApi service = retrofit.create(StoreApi.class);
+        Log.i(Retrofit.TAG, "StoreService service doGet");
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Log.i(Retrofit.TAG, "StoreService call.execute()");
+        call.enqueue(new Callback<MyResp>() {
+            @Override
+            public void onResponse(Call<MyResp> call, Response<MyResp> response) {
+                MyResp list = response.body();
+                Log.i(Retrofit.TAG, "list status:"+list.status+", tid:"+Thread.currentThread().getId());
+            }
+
+            @Override
+            public void onFailure(Call<MyResp> call, Throwable t) {
+                Log.i(Retrofit.TAG, "onFailure status:");
+            }
+        });
+        Log.i(Retrofit.TAG, "call.cancel ");
+        call.cancel();
+    }
+
     public static void doGetByQueryMap() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
@@ -122,7 +202,6 @@ public class StoreService {
         System.out.println("list status:"+list.status);
     }
 
-
     public static void doGetByMapAndHeaders() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
@@ -135,10 +214,16 @@ public class StoreService {
         map.put("pagesize", "1");
         map.put("code", "RANK_HOT");
         Call<MyResp> call = service.doGetByMapAndHeaders(map, getCommonParamsMap());
+        Log.i(Retrofit.TAG, "call.execute() start...");
         Response<MyResp> resp = call.execute();
+        Log.i(Retrofit.TAG, "call.execute() end");
         MyResp list = resp.body();
-        System.out.println("list status:"+list.status);
+        Log.i(Retrofit.TAG, "list status:"+list.status);
     }
+
+
+
+
 
 //    POST http://106.38.226.79:8080/mapi/edit/postrecommend
 
@@ -227,6 +312,77 @@ public class StoreService {
         System.out.println("list status:"+list.status);
     }
 
+    public static void customconverterFactory() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(new CustomConvertor())
+                .addConverterFactory(new BuiltInConverters())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Map<String, String> map = new HashMap<>();
+        map.put("pagefrom", "1");
+        map.put("pagesize", "1");
+        map.put("code", "RANK_HOT");
+        Call<String> call = service.customconverterFactory(map, getCommonParamsMap());
+        Log.i(Retrofit.TAG, "call.execute() start...");
+        Response<String> resp = call.execute();
+        Log.i(Retrofit.TAG, "call.execute() end");
+        String list = resp.body();
+        Log.i(Retrofit.TAG, "list status:"+list);
+    }
+
+    public static void returnVoidconverterFactory() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(new BuiltInConverters())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Map<String, String> map = new HashMap<>();
+        map.put("pagefrom", "1");
+        map.put("pagesize", "1");
+        map.put("code", "RANK_HOT");
+        Call<Void> call = service.returnVoidconverterFactory(map, getCommonParamsMap());
+        Log.i(Retrofit.TAG, "call.execute() start...");
+        Response<Void> resp = call.execute();
+        Void v = resp.body();
+        Log.i(Retrofit.TAG, "call.execute() end v:"+v);
+    }
+
+
+    public static void toStringConverterFactory() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(new ToStringConverterFactory())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Map<String, String> map = new HashMap<>();
+        map.put("pagefrom", "1");
+        map.put("pagesize", "1");
+        map.put("code", "RANK_HOT");
+        Call<String> call = service.toStringConverterFactory(map, getCommonParamsMap());
+        Log.i(Retrofit.TAG, "call.execute() start...");
+        Response<String> resp = call.execute();
+        String v = resp.body();
+        Log.i(Retrofit.TAG, "call.execute() end v:"+v);
+    }
+
+   static class CustomConvertor extends Converter.Factory {
+        @Override
+        public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
+            return new ToStringConverter();
+        }
+    }
+
+   static class ToStringConverter implements Converter<ResponseBody, String> {
+        @Override
+        public String convert(ResponseBody value) throws IOException {
+            String result = value.string();
+            return result;
+        }
+    }
 
 
     public static Map<String, String> getCommonParamsMap() {

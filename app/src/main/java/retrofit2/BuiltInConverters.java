@@ -22,7 +22,7 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.http.Streaming;
 
-final class BuiltInConverters extends Converter.Factory {
+public final  class BuiltInConverters extends Converter.Factory {
   @Override
   public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
       Retrofit retrofit) {
@@ -86,8 +86,8 @@ final class BuiltInConverters extends Converter.Factory {
     }
   }
 
-  static final class ToStringConverter implements Converter<Object, String> {
-    static final ToStringConverter INSTANCE = new ToStringConverter();
+  public static final class ToStringConverter implements Converter<Object, String> {
+    public static final ToStringConverter INSTANCE = new ToStringConverter();
 
     @Override public String convert(Object value) {
       return value.toString();

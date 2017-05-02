@@ -18,6 +18,20 @@
         android:text="同步请求"/>
 
     <Button
+        android:id="@+id/button11"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="doGetAsync"
+        android:text="异步请求" />
+
+    <Button
+        android:id="@+id/button12"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="cancelCall"
+        android:text="取消请求" />
+
+    <Button
         android:id="@+id/button2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -58,5 +72,26 @@
         android:layout_height="wrap_content"
         android:onClick="SimpleMockService"
         android:text="模拟服务器mock service" />
+
+    <Button
+        android:id="@+id/button8"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="customconverterFactory"
+        android:text="返回字符串" />
+
+    <Button
+        android:id="@+id/button9"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="returnVoidconverterFactory"
+        android:text="返回空" />
+
+    <Button
+        android:id="@+id/button10"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="toStringConverterFactory"
+        android:text="使用retrofit 返回字符串" />
 
 </LinearLayout>

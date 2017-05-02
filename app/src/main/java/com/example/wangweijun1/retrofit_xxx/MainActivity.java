@@ -65,6 +65,23 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+
+    public void doGetAsync(View v) {
+        try {
+            StoreService.doGetAsync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void cancelCall(View v) {
+        try {
+            StoreService.cancelCall();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void doGetByMapAndHeaders(View v) {
         new Thread(new Runnable() {
             @Override
@@ -119,6 +136,47 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+
+    public void customconverterFactory(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.customconverterFactory();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
+    public void returnVoidconverterFactory(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.returnVoidconverterFactory();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
+    public void toStringConverterFactory(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.toStringConverterFactory();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
 //    public void JsonAndXmlConverters(View v) {
 //        new Thread(new Runnable() {

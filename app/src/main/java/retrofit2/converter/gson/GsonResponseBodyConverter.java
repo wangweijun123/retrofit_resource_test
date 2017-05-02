@@ -15,12 +15,15 @@
  */
 package retrofit2.converter.gson;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import java.io.IOException;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
+import retrofit2.Retrofit;
 
 final class GsonResponseBodyConverter<T> implements Converter<ResponseBody, T> {
   private final Gson gson;
@@ -34,7 +37,8 @@ final class GsonResponseBodyConverter<T> implements Converter<ResponseBody, T> {
   @Override public T convert(ResponseBody value) throws IOException {
     JsonReader jsonReader = gson.newJsonReader(value.charStream());
     try {
-      return adapter.read(jsonReader);
+      T t = adapter.read(jsonReader);
+      return t;
     } finally {
       value.close();
     }

@@ -15,6 +15,8 @@
  */
 package retrofit2;
 
+import android.util.Log;
+
 import java.io.IOException;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -105,7 +107,9 @@ final class OkHttpCall<T> implements Call<T> {
           throws IOException {
         Response<T> response;
         try {
+          Log.i(Retrofit.TAG, this + "enque parseResponse...");
           response = parseResponse(rawResponse);
+          Log.i(Retrofit.TAG, this + "enque parseResponse end");
         } catch (Throwable e) {
           callFailure(e);
           return;
@@ -172,8 +176,11 @@ final class OkHttpCall<T> implements Call<T> {
     if (canceled) {
       call.cancel();
     }
-
-    return parseResponse(call.execute());
+    okhttp3.Response ok_response = call.execute();
+    Log.i(Retrofit.TAG, this + " parse ok_response ...");
+    Response<T> response = parseResponse(ok_response);
+    Log.i(Retrofit.TAG, this + " parse ok_response end");
+    return response;
   }
 
   private okhttp3.Call createRawCall() throws IOException {
@@ -194,6 +201,7 @@ final class OkHttpCall<T> implements Call<T> {
         .build();
 
     int code = rawResponse.code();
+    Log.i(Retrofit.TAG, this + "response code:"+code);
     if (code < 200 || code >= 300) {
       try {
         // Buffer the entire body to avoid future I/O.
@@ -212,6 +220,7 @@ final class OkHttpCall<T> implements Call<T> {
     ExceptionCatchingRequestBody catchingBody = new ExceptionCatchingRequestBody(rawBody);
     try {
       T body = serviceMethod.toResponse(catchingBody);
+      Log.i(Retrofit.TAG, this + " Response.success(body, rawResponse)");
       return Response.success(body, rawResponse);
     } catch (RuntimeException e) {
       // If the underlying source threw an exception, propagate that rather than indicating it was
