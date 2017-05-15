@@ -64,14 +64,19 @@ public final class CacheInterceptor implements Interceptor {
     Request networkRequest = strategy.networkRequest;
     Response cacheResponse = strategy.cacheResponse;
 
+    Log.i(Retrofit.TAG, this + " cache != null ? " + (cache != null));
     if (cache != null) {
       cache.trackResponse(strategy);
     }
 
+    Log.i(Retrofit.TAG, this + " cacheCandidate != null ? " + (cacheCandidate != null)
+            + ", cacheResponse == null ? "+ (cacheResponse == null));
     if (cacheCandidate != null && cacheResponse == null) {
       closeQuietly(cacheCandidate.body()); // The cache candidate wasn't applicable. Close it.
     }
 
+    Log.i(Retrofit.TAG, this + " networkRequest == null ? " + (networkRequest == null)
+            + ", cacheResponse == null ? "+ (cacheResponse == null));
     // If we're forbidden from using the network and the cache is insufficient, fail.
     if (networkRequest == null && cacheResponse == null) {
       return new Response.Builder()
@@ -85,6 +90,7 @@ public final class CacheInterceptor implements Interceptor {
           .build();
     }
 
+    Log.i(Retrofit.TAG, this + " networkRequest == null ? " + (networkRequest == null));
     // If we don't need the network, we're done.
     if (networkRequest == null) {
       return cacheResponse.newBuilder()
@@ -102,8 +108,10 @@ public final class CacheInterceptor implements Interceptor {
       }
     }
 
+    Log.i(Retrofit.TAG, this + " cacheResponse != null ? " + (cacheResponse != null));
     // If we have a cache response too, then we're doing a conditional get.
     if (cacheResponse != null) {
+      Log.i(Retrofit.TAG, this + " networkResponse.code() == HTTP_NOT_MODIFIED ? " + (networkResponse.code() == HTTP_NOT_MODIFIED));
       if (networkResponse.code() == HTTP_NOT_MODIFIED) {
         Response response = cacheResponse.newBuilder()
             .headers(combine(cacheResponse.headers(), networkResponse.headers()))

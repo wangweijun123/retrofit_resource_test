@@ -23,6 +23,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.helpers.ToStringConverterFactory;
+import retrofit2.http.Body;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -39,9 +40,9 @@ import retrofit2.http.QueryMap;
 
 public class StoreService {
 
-    public static final String URL_BASIC_SERVICE_TEST = "http://10.11.146.202/mstore_api/";
+//    public static final String URL_BASIC_SERVICE_TEST = "http://10.11.146.202/mstore_api/";
     /** 提供基础服务的测试服务器地址  外网测试地址*/
-//    public static final String URL_BASIC_SERVICE_TEST = "http://123.125.91.30/api34/";
+    public static final String URL_BASIC_SERVICE_TEST = "http://123.125.91.30/api34/";
     public static final String URL_BASIC_SERVICE_RELEASE = "http://106.38.226.79:8080/";
     public static final String URL_BASIC_SERVICE = "http://mapi.letvstore.com/";
 
@@ -82,6 +83,9 @@ public class StoreService {
         @FormUrlEncoded
         @POST("mapi/edit/postrecommend")
         Call<MyResp> doPost(@FieldMap Map<String, String> map, @HeaderMap Map<String, String> headers);
+
+        @POST("record/dl")
+        Call<String> doPostForJson(@Body RequestBody requestBody);
 
         @FormUrlEncoded
         @POST("mapi/edit/postrecommend")
@@ -130,16 +134,19 @@ public class StoreService {
      * @throws IOException
      */
     public static void doGetAsync() throws IOException {
+        //
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         Log.i(Retrofit.TAG, "StoreService create service");
+        // 使用retrofit创建一个api接口对象(retrofit newProxyInstance)
         StoreApi service = retrofit.create(StoreApi.class);
         Log.i(Retrofit.TAG, "StoreService service doGet");
         // pagefrom=1&pagesize=1&code=RANK_HOT";
+        // retrofit (代理对象调用doget方法，返回ExecutorCallbackCall(其实就是OkhttpCall对象)))
         Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
-        Log.i(Retrofit.TAG, "StoreService call.execute()");
+        Log.i(Retrofit.TAG, "StoreService call:"+call);
 
         Callback<MyResp> callback = new Callback<MyResp>() {
             @Override
@@ -253,6 +260,43 @@ public class StoreService {
         Response<MyResp> resp = repos.execute();
         MyResp list = resp.body();
         System.out.println("list status:"+list.status);
+    }
+
+    public static void doPostForJson() {
+        // http://www.roundsapp.com/post
+        // "http://download.log.letvstore.com/record/dl"
+        Retrofit retrofit=new Retrofit.Builder()
+                .baseUrl("http://download.log.letvstore.com/")
+                .addConverterFactory(new ToStringConverterFactory())
+                .build();
+        StoreApi postRoute=retrofit.create(StoreApi.class);
+        // 自己创建 RequestBody 指定类型
+        RequestBody body=RequestBody.create(okhttp3.MediaType.parse("application/json; charset=utf-8"),bowlingJson("Jesse", "Jake"));
+        Call<String> call=postRoute.doPostForJson(body);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                Log.i(Retrofit.TAG,  "onResponse:" +  response.body());
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.i(Retrofit.TAG, "onFailure" + t.getMessage());
+            }
+        });
+
+    }
+
+    static String bowlingJson(String player1, String player2) {
+        return "{'winCondition':'HIGH_SCORE',"
+                + "'name':'Bowling',"
+                + "'round':4,"
+                + "'lastSaved':1367702411696,"
+                + "'dateStarted':1367702378785,"
+                + "'players':["
+                + "{'name':'" + player1 + "','history':[10,8,6,7,8],'color':-13388315,'total':39},"
+                + "{'name':'" + player2 + "','history':[6,10,5,10,10],'color':-48060,'total':41}"
+                + "]}";
     }
 
     public static void doPostAndQueryParams() throws IOException {

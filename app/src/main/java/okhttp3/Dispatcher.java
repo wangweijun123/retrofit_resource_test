@@ -46,6 +46,8 @@ public final class Dispatcher {
   /** Executes calls. Created lazily. */
   private ExecutorService executorService;
 
+  /** 准备异步请求的队列，当正在运行的请求数量大于最大请求数量，先把它放到准备请求队列中暂存，
+   * 当某一个请求完成后，从准备请求队列中取出添加到runningsAysnCalls，立马执行请求 */
   /** Ready async calls in the order they'll be run. */
   private final Deque<AsyncCall> readyAsyncCalls = new ArrayDeque<>();
 

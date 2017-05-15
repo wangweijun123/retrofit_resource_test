@@ -94,4 +94,11 @@
         android:onClick="toStringConverterFactory"
         android:text="使用retrofit 返回字符串" />
 
+    <Button
+        android:id="@+id/button13"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="doPostForJson"
+        android:text="post json 数据" />
+
 </LinearLayout>

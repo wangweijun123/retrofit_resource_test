@@ -26,6 +26,9 @@ import okhttp3.Response;
 import okhttp3.internal.http.HttpCodec;
 import okhttp3.internal.http.RealInterceptorChain;
 import retrofit2.Retrofit;
+/**
+ * 访问网络，好像是在访问api接口前，提前发现网络问题
+ */
 
 /** Opens a connection to the target server and proceeds to the next interceptor. */
 public final class ConnectInterceptor implements Interceptor {

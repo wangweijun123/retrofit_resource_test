@@ -149,6 +149,8 @@ final class RealCall implements Call {
           responseCallback.onResponse(RealCall.this, response);
         }
       } catch (IOException e) {
+        Log.i(Retrofit.TAG, this + " " + e.toString());
+        e.printStackTrace();
         if (signalledCallback) {
           // Do not signal the callback twice!
           Platform.get().log(INFO, "Callback failure for " + toLoggableString(), e);

@@ -3,6 +3,7 @@ package com.example.wangweijun1.retrofit_xxx;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,12 @@ import com.example.retrofit.SimpleService;
 import com.example.retrofit.StoreService;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
+import retrofit2.http.Url;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,6 +32,17 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         }
+        URL url = null;
+        try {
+            url = new URL("xxxx");
+            HttpURLConnection urlConnection =  (HttpURLConnection)url.openConnection();
+            urlConnection.disconnect();;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Handler handler;
+
     }
 
 
@@ -190,6 +208,11 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        }).start();
 //    }
+
+
+    public void doPostForJson(View v) {
+        StoreService.doPostForJson();
+    }
 
     private boolean addPermission(Context context, String permission) {
         if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {

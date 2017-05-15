@@ -15,6 +15,8 @@
  */
 package retrofit2.helpers;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -33,7 +35,9 @@ public class ToStringConverterFactory extends Converter.Factory {
     if (String.class.equals(type)) {
       return new Converter<ResponseBody, String>() {
         @Override public String convert(ResponseBody value) throws IOException {
-          return value.string();
+          String str = value.string();
+          Log.i(Retrofit.TAG, "responseBodyConverter value.string():"+str);
+          return str;
         }
       };
     }
@@ -45,6 +49,7 @@ public class ToStringConverterFactory extends Converter.Factory {
     if (String.class.equals(type)) {
       return new Converter<String, RequestBody>() {
         @Override public RequestBody convert(String value) throws IOException {
+          Log.i(Retrofit.TAG, "requestBodyConverter value:"+value);
           return RequestBody.create(MEDIA_TYPE, value);
         }
       };

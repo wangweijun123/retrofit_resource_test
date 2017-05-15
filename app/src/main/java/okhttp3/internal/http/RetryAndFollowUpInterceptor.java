@@ -112,6 +112,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
     int followUpCount = 0;
     Response priorResponse = null;
     while (true) {
+      Log.i(Retrofit.TAG, this + " chain proceed request canceled:"+canceled);
       if (canceled) {
         streamAllocation.release();
         throw new IOException("Canceled");
@@ -123,17 +124,22 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
         response = ((RealInterceptorChain) chain).proceed(request, streamAllocation, null, null);
         releaseConnection = false;
       } catch (RouteException e) {
+        Log.i(Retrofit.TAG, this + " RouteException ");
         // The attempt to connect via a route failed. The request will not have been sent.
         if (!recover(e.getLastConnectException(), false, request)) {
+          Log.i(Retrofit.TAG, this + " RouteException throw e.getLastConnectException");
           throw e.getLastConnectException();
         }
         releaseConnection = false;
+        Log.i(Retrofit.TAG, this + " RouteException continue");
         continue;
       } catch (IOException e) {
+        Log.i(Retrofit.TAG, this + " IOException");
         // An attempt to communicate with a server failed. The request may have been sent.
         boolean requestSendStarted = !(e instanceof ConnectionShutdownException);
         if (!recover(e, requestSendStarted, request)) throw e;
         releaseConnection = false;
+        Log.i(Retrofit.TAG, this + " IOException continue");
         continue;
       } finally {
         // We're throwing an unchecked exception. Release any resources.
@@ -159,7 +165,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
         if (!forWebSocket) {
           streamAllocation.release();
         }
-        Log.i(Retrofit.TAG, this + " intercept end ...");
+        Log.i(Retrofit.TAG, this + "followUp == null intercept end ...");
         return response;
       }
 
@@ -167,11 +173,13 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
 
       if (++followUpCount > MAX_FOLLOW_UPS) {
         streamAllocation.release();
+        Log.i(Retrofit.TAG, this + " Too many follow-up requests: " + followUpCount);
         throw new ProtocolException("Too many follow-up requests: " + followUpCount);
       }
 
       if (followUp.body() instanceof UnrepeatableRequestBody) {
         streamAllocation.release();
+        Log.i(Retrofit.TAG, this + " Cannot retry streamed HTTP body " + response.code());
         throw new HttpRetryException("Cannot retry streamed HTTP body", response.code());
       }
 
@@ -180,6 +188,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
         streamAllocation = new StreamAllocation(
             client.connectionPool(), createAddress(followUp.url()), callStackTrace);
       } else if (streamAllocation.codec() != null) {
+        Log.i(Retrofit.TAG, this + " Closing the body of ");
         throw new IllegalStateException("Closing the body of " + response
             + " didn't close its backing stream. Bad interceptor?");
       }

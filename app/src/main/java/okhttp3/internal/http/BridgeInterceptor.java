@@ -36,6 +36,8 @@ import retrofit2.Retrofit;
 import static okhttp3.internal.Util.hostHeader;
 
 /**
+ * bridge(桥，衔接作用，转化)
+ * 应用代码转化为网络代码，比如说你设置的content_type,最终是要放在headers里面传给服务器的
  * Bridges from application code to network code. First it builds a network request from a user
  * request. Then it proceeds to call the network. Finally it builds a user response from the network
  * response.
