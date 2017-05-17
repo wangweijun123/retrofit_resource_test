@@ -29,6 +29,13 @@ import retrofit2.Retrofit;
 public class ToStringConverterFactory extends Converter.Factory {
   static final MediaType MEDIA_TYPE = MediaType.parse("text/plain");
 
+  /**
+   * 把ResponseBody 转化为自己想要的对象
+   * @param type
+   * @param annotations
+   * @param retrofit
+   * @return
+   */
   @Override
   public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
       Retrofit retrofit) {
@@ -44,6 +51,14 @@ public class ToStringConverterFactory extends Converter.Factory {
     return null;
   }
 
+  /**
+   *
+   * @param type
+   * @param parameterAnnotations
+   * @param methodAnnotations
+   * @param retrofit
+   * @return
+   */
   @Override public Converter<?, RequestBody> requestBodyConverter(Type type,
       Annotation[] parameterAnnotations, Annotation[] methodAnnotations, Retrofit retrofit) {
     if (String.class.equals(type)) {

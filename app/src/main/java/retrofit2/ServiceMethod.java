@@ -91,7 +91,9 @@ final class ServiceMethod<R, T> {
     this.isMultipart = builder.isMultipart;
     this.parameterHandlers = builder.parameterHandlers;
   }
-
+  /**
+   * ServiceMethod 作用 : 根据参数生成request的实例
+   */
   /** Builds an HTTP request from method arguments. */
   Request toRequest(Object... args) throws IOException {
     RequestBuilder requestBuilder = new RequestBuilder(httpMethod, baseUrl, relativeUrl, headers,

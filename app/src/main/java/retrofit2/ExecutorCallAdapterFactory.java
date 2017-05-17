@@ -95,6 +95,7 @@ final class ExecutorCallAdapterFactory extends CallAdapter.Factory {
     }
 
     @Override public void cancel() {
+      Log.i(Retrofit.TAG,this+ " delegate:"+delegate+"  cancel");
       delegate.cancel();
     }
 

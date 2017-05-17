@@ -180,17 +180,17 @@ public class StoreService {
         Log.i(Retrofit.TAG, "StoreService service doGet");
         // pagefrom=1&pagesize=1&code=RANK_HOT";
         Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
-        Log.i(Retrofit.TAG, "StoreService call.execute()");
+        Log.i(Retrofit.TAG, "StoreService call.execute() call:"+call);
         call.enqueue(new Callback<MyResp>() {
             @Override
             public void onResponse(Call<MyResp> call, Response<MyResp> response) {
                 MyResp list = response.body();
-                Log.i(Retrofit.TAG, "list status:"+list.status+", tid:"+Thread.currentThread().getId());
+                Log.i(Retrofit.TAG, "call" + call + ", list status:"+list.status+", tid:"+Thread.currentThread().getId());
             }
 
             @Override
             public void onFailure(Call<MyResp> call, Throwable t) {
-                Log.i(Retrofit.TAG, "onFailure status:");
+                Log.i(Retrofit.TAG, "onFailure status: call:"+call+ "   "+t.toString());
             }
         });
         Log.i(Retrofit.TAG, "call.cancel ");

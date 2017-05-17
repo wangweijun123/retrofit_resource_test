@@ -20,6 +20,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import retrofit2.http.Url;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         URL url = null;
         try {
             url = new URL("xxxx");
-            HttpURLConnection urlConnection =  (HttpURLConnection)url.openConnection();
+            HttpsURLConnection urlConnection =  (HttpsURLConnection)url.openConnection();
             urlConnection.disconnect();;
         } catch (Exception e) {
             e.printStackTrace();
@@ -213,6 +215,11 @@ public class MainActivity extends AppCompatActivity {
     public void doPostForJson(View v) {
         StoreService.doPostForJson();
     }
+
+    public void volatileTest(View v) {
+        Counter.main();
+    }
+
 
     private boolean addPermission(Context context, String permission) {
         if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {

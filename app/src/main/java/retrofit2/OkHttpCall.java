@@ -232,6 +232,7 @@ final class OkHttpCall<T> implements Call<T> {
   }
 
   public void cancel() {
+    Log.i(Retrofit.TAG,this+ " cancel..");
     canceled = true;
 
     okhttp3.Call call;
