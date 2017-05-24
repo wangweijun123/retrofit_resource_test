@@ -16,6 +16,8 @@
  */
 package okhttp3;
 
+import android.util.Log;
+
 import java.lang.ref.Reference;
 import java.net.Socket;
 import java.util.ArrayDeque;
@@ -32,6 +34,7 @@ import okhttp3.internal.connection.RealConnection;
 import okhttp3.internal.connection.RouteDatabase;
 import okhttp3.internal.connection.StreamAllocation;
 import okhttp3.internal.platform.Platform;
+import retrofit2.Retrofit;
 
 import static okhttp3.internal.Util.closeQuietly;
 
@@ -152,6 +155,7 @@ public final class ConnectionPool {
       executor.execute(cleanupRunnable);
     }
     connections.add(connection);
+    Log.i(Retrofit.TAG,"connections size:"+connections.size());
   }
 
   /**
@@ -162,6 +166,7 @@ public final class ConnectionPool {
     assert (Thread.holdsLock(this));
     if (connection.noNewStreams || maxIdleConnections == 0) {
       connections.remove(connection);
+      Log.i(Retrofit.TAG,"connectionBecameIdle connections.remove(connection)  size"+connections.size());
       return true;
     } else {
       notifyAll(); // Awake the cleanup thread: we may have exceeded the idle connection limit.
@@ -179,6 +184,8 @@ public final class ConnectionPool {
           connection.noNewStreams = true;
           evictedConnections.add(connection);
           i.remove();
+          Log.i(Retrofit.TAG,"evictAll connections remove size:"
+                  +connections.size() + ", evictedConnections size:"+evictedConnections.size());
         }
       }
     }
@@ -196,8 +203,8 @@ public final class ConnectionPool {
    * -1 if no further cleanups are required.
    */
   long cleanup(long now) {
-    int inUseConnectionCount = 0;
-    int idleConnectionCount = 0;
+    int inUseConnectionCount = 0;// 正在使用的连接
+    int idleConnectionCount = 0; // 空闲的连接
     RealConnection longestIdleConnection = null;
     long longestIdleDurationNs = Long.MIN_VALUE;
 
@@ -221,12 +228,17 @@ public final class ConnectionPool {
           longestIdleConnection = connection;
         }
       }
+      Log.i(Retrofit.TAG,"longestIdleDurationNs:"+longestIdleDurationNs+
+      ", this.keepAliveDurationNs:"+this.keepAliveDurationNs +
+      ", idleConnectionCount:"+idleConnectionCount +
+      ", this.maxIdleConnections:"+this.maxIdleConnections);
 
       if (longestIdleDurationNs >= this.keepAliveDurationNs
           || idleConnectionCount > this.maxIdleConnections) {
         // We've found a connection to evict. Remove it from the list, then close it below (outside
         // of the synchronized block).
         connections.remove(longestIdleConnection);
+        Log.i(Retrofit.TAG,"connections.remove(longestIdleConnection connections size :"+connections.size());
       } else if (idleConnectionCount > 0) {
         // A connection will be ready to evict soon.
         return keepAliveDurationNs - longestIdleDurationNs;

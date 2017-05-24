@@ -69,6 +69,7 @@ public final class Dispatcher {
       executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
           new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp Dispatcher", false));
     }
+    Log.i("wang", this + " executorService:"+executorService);
     return executorService;
   }
 

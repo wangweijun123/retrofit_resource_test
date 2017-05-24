@@ -528,7 +528,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   }
 
   @Override public String toString() {
-    return "Connection{"
+    return hashCode() + "  Connection{"
         + route.address().url().host() + ":" + route.address().url().port()
         + ", proxy="
         + route.proxy()
@@ -540,4 +540,6 @@ public final class RealConnection extends Http2Connection.Listener implements Co
         + protocol
         + '}';
   }
+
+
 }

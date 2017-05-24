@@ -15,6 +15,8 @@
  */
 package okhttp3.internal.connection;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -29,6 +31,7 @@ import okhttp3.internal.http.HttpCodec;
 import okhttp3.internal.http2.ConnectionShutdownException;
 import okhttp3.internal.http2.ErrorCode;
 import okhttp3.internal.http2.StreamResetException;
+import retrofit2.Retrofit;
 
 import static okhttp3.internal.Util.closeQuietly;
 
@@ -146,6 +149,8 @@ public final class StreamAllocation {
   private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,
       boolean connectionRetryEnabled) throws IOException {
     Route selectedRoute;
+    Log.i(Retrofit.TAG,this +
+            " findConnection : released:"+released+", codec:"+codec+", canceled:" +canceled);
     synchronized (connectionPool) {
       if (released) throw new IllegalStateException("released");
       if (codec != null) throw new IllegalStateException("codec != null");
@@ -153,12 +158,17 @@ public final class StreamAllocation {
 
       // Attempt to use an already-allocated connection.
       RealConnection allocatedConnection = this.connection;
+      Log.i(Retrofit.TAG," allocatedConnection :"
+              + allocatedConnection);
       if (allocatedConnection != null && !allocatedConnection.noNewStreams) {
+        Log.i(Retrofit.TAG,"return  allocatedConnection :");
         return allocatedConnection;
       }
 
       // Attempt to get a connection from the pool.
+      Log.i(Retrofit.TAG," Attempt to get a connection from the pool ");
       Internal.instance.get(connectionPool, address, this, null);
+      Log.i(Retrofit.TAG," connection :" + connection);
       if (connection != null) {
         return connection;
       }
@@ -167,6 +177,8 @@ public final class StreamAllocation {
     }
 
     // If we need a route, make one. This is a blocking operation.
+    Log.i(Retrofit.TAG,"If we need a route, make one. This is a blocking operation");
+    Log.i(Retrofit.TAG, "selectedRoute == null ? " +(selectedRoute == null));
     if (selectedRoute == null) {
       selectedRoute = routeSelector.next();
     }
@@ -178,6 +190,8 @@ public final class StreamAllocation {
       // Now that we have an IP address, make another attempt at getting a connection from the pool.
       // This could match due to connection coalescing.
       Internal.instance.get(connectionPool, address, this, selectedRoute);
+      Log.i(Retrofit.TAG, "now that we have an IP address, make another attempt at getting a connection from the pool. ");
+      Log.i(Retrofit.TAG,"connection:"+connection);
       if (connection != null) return connection;
 
       // Create a connection and assign it to this allocation immediately. This makes it possible
@@ -187,7 +201,7 @@ public final class StreamAllocation {
       result = new RealConnection(connectionPool, selectedRoute);
       acquire(result);
     }
-
+    Log.i(Retrofit.TAG,"Do TCP + TLS handshakes. This is a blocking operation");
     // Do TCP + TLS handshakes. This is a blocking operation.
     result.connect(connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled);
     routeDatabase().connected(result.route());
@@ -195,6 +209,7 @@ public final class StreamAllocation {
     Socket socket = null;
     synchronized (connectionPool) {
       // Pool the connection.
+      Log.i(Retrofit.TAG,"put the connection : "+result);
       Internal.instance.put(connectionPool, result);
 
       // If another multiplexed connection to the same address was created concurrently, then

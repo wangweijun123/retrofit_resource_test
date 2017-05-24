@@ -110,5 +110,18 @@
             android:onClick="volatileTest"
             android:text="volatile test" />
 
+        <Button
+            android:id="@+id/button18"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testOkhttpClientSingleInstance"
+            android:text="单例okhttpclient" />
+
+        <Button
+            android:id="@+id/button19"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testOkhttpClientMutipart"
+            android:text="多实例okhttpclient" />
     </LinearLayout>
 </ScrollView>

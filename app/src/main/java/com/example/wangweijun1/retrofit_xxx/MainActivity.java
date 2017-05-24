@@ -8,6 +8,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.example.retrofit.SimpleMockService;
@@ -22,6 +23,14 @@ import java.net.URLConnection;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import retrofit2.OkHttpUtils;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Url;
 
 public class MainActivity extends AppCompatActivity {
@@ -218,6 +227,39 @@ public class MainActivity extends AppCompatActivity {
 
     public void volatileTest(View v) {
         Counter.main();
+    }
+
+    public void testOkhttpClientSingleInstance(View v) {
+        StoreService.testOkhttpClientSingleInstance();
+
+//        try {
+//            Thread.sleep(1000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        int count = 49;
+//        for (int i=0; i<count; i++) {
+//            StoreService.testOkhttpClientSingleInstance();
+//        }
+
+
+    }
+
+
+    public void testOkhttpClientMutipart(View v) {
+        StoreService.testOkhttpClientMutipart();
+
+//        try {
+//            Thread.sleep(1000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        int count = 49;
+//        for (int i=0; i<count; i++) {
+//            StoreService.testOkhttpClientMutipart();
+//        }
+
+
     }
 
 

@@ -570,6 +570,7 @@ public final class Retrofit {
 
       okhttp3.Call.Factory callFactory = this.callFactory;
       if (callFactory == null) {
+        Log.i(Retrofit.TAG, " new OkHttpClient()");
         callFactory = new OkHttpClient();
       }
 

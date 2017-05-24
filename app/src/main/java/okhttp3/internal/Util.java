@@ -15,6 +15,8 @@
  */
 package okhttp3.internal;
 
+import android.util.Log;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -39,6 +41,7 @@ import okio.Buffer;
 import okio.BufferedSource;
 import okio.ByteString;
 import okio.Source;
+import retrofit2.Retrofit;
 
 /** Junk drawer of utility methods. */
 public final class Util {
@@ -118,6 +121,7 @@ public final class Util {
   public static void closeQuietly(Socket socket) {
     if (socket != null) {
       try {
+        Log.i(Retrofit.TAG,"socket.close()");
         socket.close();
       } catch (AssertionError e) {
         if (!isAndroidGetsocknameError(e)) throw e;

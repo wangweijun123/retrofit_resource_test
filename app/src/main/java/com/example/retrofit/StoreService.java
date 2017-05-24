@@ -19,6 +19,7 @@ import retrofit2.BuiltInConverters;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Converter;
+import retrofit2.OkHttpUtils;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -42,9 +43,9 @@ public class StoreService {
 
 //    public static final String URL_BASIC_SERVICE_TEST = "http://10.11.146.202/mstore_api/";
     /** 提供基础服务的测试服务器地址  外网测试地址*/
-    public static final String URL_BASIC_SERVICE_TEST = "http://123.125.91.30/api34/";
+//    public static final String URL_BASIC_SERVICE_TEST = "http://123.125.91.30/api34/";
     public static final String URL_BASIC_SERVICE_RELEASE = "http://106.38.226.79:8080/";
-    public static final String URL_BASIC_SERVICE = "http://mapi.letvstore.com/";
+    public static final String URL_BASIC_SERVICE_TEST = "http://mapi.letvstore.com/";
 
     class Repo {
         int id;
@@ -102,7 +103,7 @@ public class StoreService {
 
 
 
-    class MyResp {
+    public class MyResp {
         String status;
     }
 
@@ -431,6 +432,89 @@ public class StoreService {
             String result = value.string();
             return result;
         }
+    }
+
+
+    /**
+     * 测试okhttpclient 单例 (Dispatcher单例，ConnectionPool 单例)
+     * @throws IOException
+     */
+    public static void testOkhttpClientSingleInstance() {
+        try {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(URL_BASIC_SERVICE_TEST)
+                    .client(OkHttpUtils.getInstance().getOkHttpClient())
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            Log.i(Retrofit.TAG, "StoreService create service");
+            // 使用retrofit创建一个api接口对象(retrofit newProxyInstance)
+            StoreApi service = retrofit.create(StoreApi.class);
+            Log.i(Retrofit.TAG, "StoreService service doGet");
+            // pagefrom=1&pagesize=1&code=RANK_HOT";
+            // retrofit (代理对象调用doget方法，返回ExecutorCallbackCall(其实就是OkhttpCall对象)))
+            Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+            Log.i(Retrofit.TAG, "StoreService call:"+call);
+
+            Callback<MyResp> callback = new Callback<MyResp>() {
+                @Override
+                public void onResponse(Call<MyResp> call, Response<MyResp> response) {
+                    MyResp list = response.body();
+                    Log.i(Retrofit.TAG,  " list status:"+list.status+", tid:"+Thread.currentThread().getId());
+                }
+
+                @Override
+                public void onFailure(Call<MyResp> call, Throwable t) {
+                    t.printStackTrace();
+                    Log.i(Retrofit.TAG, "onFailure status");
+                }
+            };
+
+            Log.i(Retrofit.TAG, "id callback:"+callback);
+            call.enqueue(callback);
+        } catch (Exception e){
+
+        }
+
+    }
+
+    /**
+     * okhttpclient 多实例
+     */
+    public static void testOkhttpClientMutipart() {
+        try {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(URL_BASIC_SERVICE_TEST)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            Log.i(Retrofit.TAG, "StoreService create service");
+            // 使用retrofit创建一个api接口对象(retrofit newProxyInstance)
+            StoreApi service = retrofit.create(StoreApi.class);
+            Log.i(Retrofit.TAG, "StoreService service doGet");
+            // pagefrom=1&pagesize=1&code=RANK_HOT";
+            // retrofit (代理对象调用doget方法，返回ExecutorCallbackCall(其实就是OkhttpCall对象)))
+            Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+            Log.i(Retrofit.TAG, "StoreService call:"+call);
+
+            Callback<MyResp> callback = new Callback<MyResp>() {
+                @Override
+                public void onResponse(Call<MyResp> call, Response<MyResp> response) {
+                    MyResp list = response.body();
+                    Log.i(Retrofit.TAG,  " list status:"+list.status+", tid:"+Thread.currentThread().getId());
+                }
+
+                @Override
+                public void onFailure(Call<MyResp> call, Throwable t) {
+                    t.printStackTrace();
+                    Log.i(Retrofit.TAG, "onFailure status");
+                }
+            };
+
+            Log.i(Retrofit.TAG, "id callback:"+callback);
+            call.enqueue(callback);
+        } catch (Exception e){
+
+        }
+
     }
 
 
