@@ -85,6 +85,7 @@ public final class Http2Codec implements HttpCodec {
   private final OkHttpClient client;
   final StreamAllocation streamAllocation;
   private final Http2Connection connection;
+  /** 读写都用这个stream */
   private Http2Stream stream;
 
   public Http2Codec(

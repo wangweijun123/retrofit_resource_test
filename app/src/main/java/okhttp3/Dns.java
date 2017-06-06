@@ -36,6 +36,7 @@ public interface Dns {
   Dns SYSTEM = new Dns() {
     @Override public List<InetAddress> lookup(String hostname) throws UnknownHostException {
       if (hostname == null) throw new UnknownHostException("hostname == null");
+      //native dns 查询(系统自带的查询)，也就是说查询运营商的DNS服务器(这里牵涉到DNS欺诈，运营商广告)
       return Arrays.asList(InetAddress.getAllByName(hostname));
     }
   };

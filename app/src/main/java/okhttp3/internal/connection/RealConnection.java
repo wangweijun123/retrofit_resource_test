@@ -16,6 +16,8 @@
  */
 package okhttp3.internal.connection;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.net.ConnectException;
@@ -61,6 +63,7 @@ import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
 import okio.Source;
+import retrofit2.Retrofit;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_PROXY_AUTH;
@@ -79,6 +82,8 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   /**
    * The application layer socket. Either an {@link SSLSocket} layered over {@link #rawSocket}, or
    * {@link #rawSocket} itself if this connection does not use SSL.
+   * TCP连接或者说socket连接，或者我们常说三次握手,
+   * 释放realse连接，断开握手
    */
   private Socket socket;
   private Handshake handshake;
@@ -229,12 +234,14 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   }
 
   private void establishProtocol(ConnectionSpecSelector connectionSpecSelector) throws IOException {
+    Log.i(Retrofit.TAG,"establishProtocol route.address().sslSocketFactory() == null?"+
+            (route.address().sslSocketFactory() == null));
     if (route.address().sslSocketFactory() == null) {
       protocol = Protocol.HTTP_1_1;
       socket = rawSocket;
       return;
     }
-
+    Log.i(Retrofit.TAG,"connectTls ...");
     connectTls(connectionSpecSelector);
 
     if (protocol == Protocol.HTTP_2) {
@@ -265,7 +272,10 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       }
 
       // Force handshake. This can throw!
+        // 如果没有CA认证过的https请求，这里会报错， Trust anchor for certification path not found.
+      Log.i(Retrofit.TAG,"startHandshake ...");
       sslSocket.startHandshake();
+      Log.i(Retrofit.TAG,"startHandshake finised");
       Handshake unverifiedHandshake = Handshake.get(sslSocket.getSession());
 
       // Verify that the socket's certificates are acceptable for the target host.

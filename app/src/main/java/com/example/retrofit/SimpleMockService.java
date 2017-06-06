@@ -50,6 +50,11 @@ public final class SimpleMockService {
       return delegate.returningResponse(response).contributors(owner, repo);
     }
 
+    @Override
+    public Call<String> testHttpsBaidu() {
+      return null;
+    }
+
     void addContributor(String owner, String repo, String name, int contributions) {
       Map<String, List<Contributor>> repoContributors = ownerRepoContributors.get(owner);
       if (repoContributors == null) {
@@ -63,6 +68,7 @@ public final class SimpleMockService {
       }
       contributors.add(new Contributor(name, contributions));
     }
+
   }
 
   public static void main(String... args) throws IOException {

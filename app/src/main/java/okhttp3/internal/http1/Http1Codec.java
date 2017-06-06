@@ -80,8 +80,11 @@ public final class Http1Codec implements HttpCodec {
   /** The stream allocation that owns this stream. May be null for HTTPS proxy tunnels. */
   final StreamAllocation streamAllocation;
 
+  /** 输入流，从服务端获取response */
   final BufferedSource source;
+  /** 输入流，从客户端写数据给服务器 */
   final BufferedSink sink;
+
   int state = STATE_IDLE;
 
   public Http1Codec(OkHttpClient client, StreamAllocation streamAllocation, BufferedSource source,

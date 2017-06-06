@@ -219,6 +219,7 @@ public class StoreService {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
         // pagefrom=1&pagesize=1&code=RANK_HOT";
@@ -426,7 +427,7 @@ public class StoreService {
         }
     }
 
-   static class ToStringConverter implements Converter<ResponseBody, String> {
+   public static class ToStringConverter implements Converter<ResponseBody, String> {
         @Override
         public String convert(ResponseBody value) throws IOException {
             String result = value.string();
@@ -485,6 +486,45 @@ public class StoreService {
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(URL_BASIC_SERVICE_TEST)
                     .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            Log.i(Retrofit.TAG, "StoreService create service");
+            // 使用retrofit创建一个api接口对象(retrofit newProxyInstance)
+            StoreApi service = retrofit.create(StoreApi.class);
+            Log.i(Retrofit.TAG, "StoreService service doGet");
+            // pagefrom=1&pagesize=1&code=RANK_HOT";
+            // retrofit (代理对象调用doget方法，返回ExecutorCallbackCall(其实就是OkhttpCall对象)))
+            Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+            Log.i(Retrofit.TAG, "StoreService call:"+call);
+
+            Callback<MyResp> callback = new Callback<MyResp>() {
+                @Override
+                public void onResponse(Call<MyResp> call, Response<MyResp> response) {
+                    MyResp list = response.body();
+                    Log.i(Retrofit.TAG,  " list status:"+list.status+", tid:"+Thread.currentThread().getId());
+                }
+
+                @Override
+                public void onFailure(Call<MyResp> call, Throwable t) {
+                    t.printStackTrace();
+                    Log.i(Retrofit.TAG, "onFailure status");
+                }
+            };
+
+            Log.i(Retrofit.TAG, "id callback:"+callback);
+            call.enqueue(callback);
+        } catch (Exception e){
+
+        }
+
+    }
+
+
+    public static void testHttpDns() {
+        try {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(URL_BASIC_SERVICE_TEST)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(OkHttpUtils.getInstance().getHTTPDnsClient())
                     .build();
             Log.i(Retrofit.TAG, "StoreService create service");
             // 使用retrofit创建一个api接口对象(retrofit newProxyInstance)

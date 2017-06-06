@@ -46,15 +46,25 @@ public final class SimpleService {
     Call<List<Contributor>> contributors(
             @Path("owner") String owner,
             @Path("repo") String repo);
+
+
+    @GET("/")
+    Call<String> testHttpsBaidu();
   }
 
   /**
-   * 同步请求
    * @throws IOException
    */
   public static void syncRequest() throws IOException {
     Log.i("wang","syncRequest tid:"+Thread.currentThread().getId());
     // Create a very simple REST adapter which points the GitHub API.
+    // Https://www.baidu.com/   从CA申请的证书, okhttp可以直接访问,我没改动代码，
+    // 也没写与证书相关的代码，是底层处理了吗, 但是设置代理后出现SSLHandshakeException:
+
+    // https://kyfw.12306.cn/otn/   自签名的证书,握手失败
+    // javax.net.ssl.SSLHandshakeException:
+    // java.security.cert.CertPathValidatorException:
+    // Trust anchor for certification path not found.
     Retrofit retrofit = new Retrofit.Builder()
         .baseUrl(API_URL)
         .addConverterFactory(GsonConverterFactory.create())
@@ -71,6 +81,40 @@ public final class SimpleService {
     for (Contributor contributor : contributors) {
       Log.i("wang", "thread id:" + Thread.currentThread().getId() + " , " + contributor.login + " (" + contributor.contributions + ")");
     }
+  }
+
+
+  public static void testBaiduHttps() throws IOException {
+    // Create a very simple REST adapter which points the GitHub API.
+
+    String url = "Https://www.baidu.com/";
+    //   https://kyfw.12306.cn/otn/
+    //  https://kyfw.12306.cn/otn/
+    Retrofit retrofit = new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(new StoreService.CustomConvertor())
+            .build();
+
+    // Create an instance of our GitHub API interface.
+    GitHub github = retrofit.create(GitHub.class);
+
+    // Create a call instance for looking up Retrofit contributors.
+    Call<String> call = github.testHttpsBaidu();
+
+    call.enqueue(new Callback<String>() {
+      @Override
+      public void onResponse(Call<String> call, Response<String> response) {
+        String contributors = response.body();
+        Log.i("wang", "thread id:" + Thread.currentThread().getId()
+                + " , " + contributors);
+      }
+
+      @Override
+      public void onFailure(Call<String> call, Throwable t) {
+        t.printStackTrace();
+        Log.i("wang", "onFailure ");
+      }
+    });
   }
 
 

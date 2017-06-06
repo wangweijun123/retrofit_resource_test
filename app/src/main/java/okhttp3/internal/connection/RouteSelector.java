@@ -15,6 +15,8 @@
  */
 package okhttp3.internal.connection;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -29,10 +31,12 @@ import okhttp3.Address;
 import okhttp3.HttpUrl;
 import okhttp3.Route;
 import okhttp3.internal.Util;
+import retrofit2.Retrofit;
 
 /**
  * Selects routes to connect to an origin server. Each connection requires a choice of proxy server,
  * IP address, and TLS mode. Connections may also be recycled.
+ * 一个域名有多个IP，这就是自动重连的来源
  */
 public final class RouteSelector {
   private final Address address;
@@ -170,6 +174,7 @@ public final class RouteSelector {
       List<InetAddress> addresses = address.dns().lookup(socketHost);
       for (int i = 0, size = addresses.size(); i < size; i++) {
         InetAddress inetAddress = addresses.get(i);
+        Log.i(Retrofit.TAG, "inetAddress.getHostAddress() : " + inetAddress.getHostAddress() + ", socketPort:"+socketPort);
         inetSocketAddresses.add(new InetSocketAddress(inetAddress, socketPort));
       }
     }
