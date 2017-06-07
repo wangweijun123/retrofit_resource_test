@@ -281,10 +281,14 @@ public final class Retrofit {
     checkNotNull(methodAnnotations, "methodAnnotations == null");
 
     int start = converterFactories.indexOf(skipPast) + 1;
-    for (int i = start, count = converterFactories.size(); i < count; i++) {
+    int count = converterFactories.size();
+    Log.i(Retrofit.TAG, "converterFactories.size()==" + count);
+    for (int i = start; i < count; i++) {
       Converter.Factory factory = converterFactories.get(i);
+      Log.i(Retrofit.TAG, "factory:" + factory);
       Converter<?, RequestBody> converter =
           factory.requestBodyConverter(type, parameterAnnotations, methodAnnotations, this);
+      Log.i(Retrofit.TAG, "converter:" + converter);
       if (converter != null) {
         //noinspection unchecked
         return (Converter<T, RequestBody>) converter;
@@ -302,7 +306,7 @@ public final class Retrofit {
       builder.append('\n');
     }
     builder.append("  Tried:");
-    for (int i = start, count = converterFactories.size(); i < count; i++) {
+    for (int i = start; i < count; i++) {
       builder.append("\n   * ").append(converterFactories.get(i).getClass().getName());
     }
     throw new IllegalArgumentException(builder.toString());
@@ -330,9 +334,12 @@ public final class Retrofit {
     checkNotNull(annotations, "annotations == null");
 
     int start = converterFactories.indexOf(skipPast) + 1;
-    for (int i = start, count = converterFactories.size(); i < count; i++) {
+    int  count = converterFactories.size();
+    Log.i(Retrofit.TAG, "nextResponseBodyConverter converterFactories.size():"+count);
+    for (int i = start; i < count; i++) {
       Converter<ResponseBody, ?> converter =
           converterFactories.get(i).responseBodyConverter(type, annotations, this);
+      Log.i(Retrofit.TAG, i +"  converter == null ?" + (converter == null));
       if (converter != null) {
         //noinspection unchecked
         return (Converter<ResponseBody, T>) converter;
@@ -350,7 +357,7 @@ public final class Retrofit {
       builder.append('\n');
     }
     builder.append("  Tried:");
-    for (int i = start, count = converterFactories.size(); i < count; i++) {
+    for (int i = start; i < count; i++) {
       builder.append("\n   * ").append(converterFactories.get(i).getClass().getName());
     }
     throw new IllegalArgumentException(builder.toString());
@@ -409,6 +416,7 @@ public final class Retrofit {
       this.platform = platform;
       // Add the built-in converter factory first. This prevents overriding its behavior but also
       // ensures correct behavior when using converters that consume all types.
+      Log.i(Retrofit.TAG, "Retrofit.Builder()  converterFactories.add(new BuiltInConverters()");
       converterFactories.add(new BuiltInConverters());
     }
 

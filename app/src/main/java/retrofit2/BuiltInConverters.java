@@ -15,6 +15,8 @@
  */
 package retrofit2;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -26,6 +28,7 @@ public final  class BuiltInConverters extends Converter.Factory {
   @Override
   public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
       Retrofit retrofit) {
+    Log.i(Retrofit.TAG,"responseBodyConverter type == ResponseBody.class?"+(type == ResponseBody.class));
     if (type == ResponseBody.class) {
       return Utils.isAnnotationPresent(annotations, Streaming.class)
           ? StreamingResponseBodyConverter.INSTANCE
@@ -34,6 +37,7 @@ public final  class BuiltInConverters extends Converter.Factory {
     if (type == Void.class) {
       return VoidResponseBodyConverter.INSTANCE;
     }
+    Log.i(Retrofit.TAG,"return null");
     return null;
   }
 
@@ -41,6 +45,7 @@ public final  class BuiltInConverters extends Converter.Factory {
   public Converter<?, RequestBody> requestBodyConverter(Type type,
       Annotation[] parameterAnnotations, Annotation[] methodAnnotations, Retrofit retrofit) {
     if (RequestBody.class.isAssignableFrom(Utils.getRawType(type))) {
+      Log.i(Retrofit.TAG, "return RequestBodyConverter.INSTANCE ");
       return RequestBodyConverter.INSTANCE;
     }
     return null;
@@ -59,6 +64,7 @@ public final  class BuiltInConverters extends Converter.Factory {
     static final RequestBodyConverter INSTANCE = new RequestBodyConverter();
 
     @Override public RequestBody convert(RequestBody value) throws IOException {
+      Log.i(Retrofit.TAG,  "BuiltInConverters.this convert value  ");
       return value;
     }
   }

@@ -367,7 +367,6 @@ public class StoreService {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(new CustomConvertor())
-                .addConverterFactory(new BuiltInConverters())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
         // pagefrom=1&pagesize=1&code=RANK_HOT";
@@ -386,7 +385,6 @@ public class StoreService {
     public static void returnVoidconverterFactory() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
-                .addConverterFactory(new BuiltInConverters())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
         // pagefrom=1&pagesize=1&code=RANK_HOT";
