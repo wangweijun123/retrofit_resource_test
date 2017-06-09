@@ -118,6 +118,15 @@
             android:text="post json 数据" />
 
         <Button
+            android:id="@+id/button133"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="doPostJson2"
+            android:text="doPostJson2 json 数据" />
+
+
+
+        <Button
             android:id="@+id/button14"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -151,5 +160,27 @@
             android:layout_height="wrap_content"
             android:onClick="startTvService"
             android:text="启动tv 更新service" />
+
+        <Button
+            android:id="@+id/button22"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="dynamicBaseUrl"
+            android:text="Dynamic Base Url动态设置base url" />
+
+        <Button
+            android:id="@+id/button23"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="dynamicUrl"
+            android:text="Dynamic Url动态设置 url,适合图片下载，url从后台传过来的" />
+
+        <Button
+            android:id="@+id/button24"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="downloadFileWithdynamicUrlSync"
+            android:text="下载" />
+
     </LinearLayout>
 </ScrollView>

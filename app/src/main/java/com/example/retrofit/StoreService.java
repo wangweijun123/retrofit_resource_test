@@ -5,7 +5,10 @@ import android.util.Log;
 import com.google.gson.annotations.JsonAdapter;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -29,11 +32,14 @@ import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.HeaderMap;
+import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
+import retrofit2.http.Streaming;
+import retrofit2.http.Url;
 
 /**
  * Created by wangweijun1 on 2017/4/9.
@@ -88,6 +94,10 @@ public class StoreService {
         @POST("record/dl")
         Call<String> doPostForJson(@Body RequestBody requestBody);
 
+        @Headers("Content-Type: application/json")
+        @POST
+        Call<String> doPostJson2(@Url String url, @Body String jsonBody);
+
         @FormUrlEncoded
         @POST("mapi/edit/postrecommend")
         Call<MyResp> doPostAndQueryParams(@QueryMap Map<String, String> queryMaps, @FieldMap Map<String, String> fieldMap, @HeaderMap Map<String, String> headers);
@@ -99,6 +109,15 @@ public class StoreService {
                 @Part("content") RequestBody content,
                 @Part MultipartBody.Part file
         );
+
+        /**
+         *  适合url是由服务器端传过来的，不是写死的，适合下载，图片什么的
+         * @param fileUrl  文件地址全的，与设置baseURL没任何关系
+         * @return
+         */
+        @Streaming
+        @GET
+        Call<ResponseBody> downloadFileWithDynamicUrlSync(@Url String fileUrl);
     }
 
 
@@ -267,6 +286,8 @@ public class StoreService {
     public static void doPostForJson() {
         // http://www.roundsapp.com/post
         // "http://download.log.letvstore.com/record/dl"
+
+        //  http://api.s5.letvstore.com/test2/api/apps/update?device=LETV_Le%2BX625&letvReleaseVersion=&letvSwVersion=&mac=02%253A00%253A00%253A00%253A00%253A00&letvUiVersion=&store=LETV&letvCarrier=-1&timeStamp=1496916296012&appVersion=5805&imei=868896020022309&letvDeviceType=-1&letvPlatform=-1&version=0&osVersion=6.0&letvHwVersion=&deviceInfo=Le%2BX625&letvUiType=&Authorization=
         Retrofit retrofit=new Retrofit.Builder()
                 .baseUrl("http://download.log.letvstore.com/")
                 .addConverterFactory(new ToStringConverterFactory())
@@ -286,7 +307,6 @@ public class StoreService {
                 Log.i(Retrofit.TAG, "onFailure" + t.getMessage());
             }
         });
-
     }
 
     static String bowlingJson(String player1, String player2) {
@@ -555,6 +575,86 @@ public class StoreService {
 
     }
 
+    /**
+     * 下载大文件还是出现oom
+     */
+    public static void dynamicUrlSync() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST) // 由于后面定义了Url，所以这里的base url是没用
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<ResponseBody> call = service.downloadFileWithDynamicUrlSync("http://www.coca-cola.com/robots.txt");
+        Callback<ResponseBody> callback = new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                ResponseBody responseBody = response.body();
+                Log.i(Retrofit.TAG, "responseBody:"+responseBody);
+
+            }
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                t.printStackTrace();
+                Log.i(Retrofit.TAG, "onFailure status");
+            }
+        };
+        call.enqueue(callback);
+    }
+
+
+
+    public static void downloadFileWithdynamicUrlSync() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST) // 由于后面定义了Url，所以这里的base url是没用
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<ResponseBody> call = service.downloadFileWithDynamicUrlSync("http://10.11.146.202/mstore_api/mapi/app/apk/20/com.yqmb.mhqx.letv/254/download");
+        Callback<ResponseBody> callback = new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                final ResponseBody responseBody = response.body();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i(Retrofit.TAG, "responseBody:"+responseBody);
+                        boolean flag = writeResponseBodyToDisk(responseBody);
+                        Log.i(Retrofit.TAG,"flag:"+flag);
+                    }
+                }).start();
+
+            }
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                t.printStackTrace();
+                Log.i(Retrofit.TAG, "onFailure status");
+            }
+        };
+        call.enqueue(callback);
+    }
+
+
+    public static void doPostJson2() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST) // 由于后面定义了Url，所以这里的base url是没用
+                .addConverterFactory(new ToStringConverterFactory())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<String> call = service.
+                doPostJson2("http://api.s5.letvstore.com/test2/api/apps/update?device=LETV_Le%2BX625&letvReleaseVersion=&letvSwVersion=&mac=02%253A00%253A00%253A00%253A00%253A00&letvUiVersion=&store=LETV&letvCarrier=-1&timeStamp=1496916296012&appVersion=5805&imei=868896020022309&letvDeviceType=-1&letvPlatform=-1&version=0&osVersion=6.0&letvHwVersion=&deviceInfo=Le%2BX625&letvUiType=&Authorization=",
+                        "{\"com.gameloft.android.HEP.GloftA8HP\":\"5\"}");
+        Callback<String> callback = new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                Log.i(Retrofit.TAG, response.body());
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                t.printStackTrace();
+                Log.i(Retrofit.TAG, "onFailure status");
+            }
+        };
+        call.enqueue(callback);
+    }
+
 
     public static Map<String, String> getCommonParamsMap() {
         Map<String, String> commonParamsMap = new HashMap<String, String>();
@@ -581,5 +681,57 @@ public class StoreService {
         commonParamsMap.put("timestamp", "1491669045636");
         commonParamsMap.put("language", "zh");
         return commonParamsMap;
+    }
+
+    private static boolean writeResponseBodyToDisk(ResponseBody body) {
+        try {
+            // todo change the file location/name according to your needs
+
+
+            File futureStudioIconFile = new File("sdcard/xxxxx.apk");
+
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+
+            try {
+                byte[] fileReader = new byte[4096];
+
+                long fileSize = body.contentLength();
+                long fileSizeDownloaded = 0;
+
+                inputStream = body.byteStream();// 输入流,从服务端过来的stream
+                outputStream = new FileOutputStream(futureStudioIconFile);//输出流到本地文件
+
+                while (true) {
+                    int read = inputStream.read(fileReader);
+
+                    if (read == -1) {
+                        break;
+                    }
+
+                    outputStream.write(fileReader, 0, read);
+
+                    fileSizeDownloaded += read;
+
+                    Log.i(Retrofit.TAG, "file download: " + fileSizeDownloaded + " of " + fileSize);
+                }
+
+                outputStream.flush();
+
+                return true;
+            } catch (IOException e) {
+                return false;
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

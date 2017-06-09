@@ -272,7 +272,8 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       }
 
       // Force handshake. This can throw!
-        // 如果没有CA认证过的https请求，这里会报错， Trust anchor for certification path not found.
+        // 如果没有CA认证过的https请求，这里会报错， (设置代理CA认证的证书也报错)
+      // Trust anchor for certification path not found.
       Log.i(Retrofit.TAG,"startHandshake ...");
       sslSocket.startHandshake();
       Log.i(Retrofit.TAG,"startHandshake finised");

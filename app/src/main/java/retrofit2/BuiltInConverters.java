@@ -30,9 +30,13 @@ public final  class BuiltInConverters extends Converter.Factory {
       Retrofit retrofit) {
     Log.i(Retrofit.TAG,"responseBodyConverter type == ResponseBody.class?"+(type == ResponseBody.class));
     if (type == ResponseBody.class) {
-      return Utils.isAnnotationPresent(annotations, Streaming.class)
-          ? StreamingResponseBodyConverter.INSTANCE
-          : BufferingResponseBodyConverter.INSTANCE;
+      boolean isStreaming = Utils.isAnnotationPresent(annotations, Streaming.class);
+      Log.i(Retrofit.TAG,"isStreaming :"+isStreaming);
+      if (isStreaming) {
+        return StreamingResponseBodyConverter.INSTANCE;
+      } else {
+        return  BufferingResponseBodyConverter.INSTANCE;
+      }
     }
     if (type == Void.class) {
       return VoidResponseBodyConverter.INSTANCE;

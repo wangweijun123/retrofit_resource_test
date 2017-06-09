@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
@@ -15,31 +14,19 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.example.retrofit.DynamicBaseUrl;
 import com.example.retrofit.HTTPSUtils;
 import com.example.retrofit.SimpleMockService;
 import com.example.retrofit.SimpleService;
 import com.example.retrofit.StoreService;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import retrofit2.OkHttpUtils;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Url;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -255,6 +242,12 @@ public class MainActivity extends AppCompatActivity {
         StoreService.doPostForJson();
     }
 
+    public void doPostJson2(View v) {
+        StoreService.doPostJson2();
+    }
+
+
+
     public void volatileTest(View v) {
         Counter.main();
     }
@@ -301,16 +294,41 @@ public class MainActivity extends AppCompatActivity {
     public void startTvService(View v) {
         // package: name='com.gameloft.android.HEP.GloftA8HP' versionCode='21000'
         Intent serviceIntent = new Intent();
-        Map<String,Integer> map = getAllLocalSimpleBaseAppsMap(getApplicationContext());
+//        Map<String,Integer> map = getAllLocalSimpleBaseAppsMap(getApplicationContext());
         serviceIntent.putExtra(PACKAGENAME, "com.gameloft.android.HEP.GloftA8HP");
 
-        int code = map.get("com.gameloft.android.HEP.GloftA8HP");
-        Log.i("wang", "code:"+code);
-        serviceIntent.putExtra(VERSIONCODE, code);
+//        int code = map.get("com.gameloft.android.HEP.GloftA8HP");
+//        Log.i("wang", "code:"+code);
+        serviceIntent.putExtra(VERSIONCODE, 5);
         serviceIntent.putExtra(TYPE_START_UPDATE_SERVICE, 5);
         serviceIntent.setComponent(new ComponentName("com.letv.tvos.appstore", "com.letv.tvos.appstore.service.PackageUpdateInfoService"));
         startService(serviceIntent);
     }
+
+
+    public void dynamicBaseUrl(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DynamicBaseUrl.main();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
+    public void dynamicUrl(View v) {
+        StoreService.dynamicUrlSync();
+    }
+
+
+    public void downloadFileWithdynamicUrlSync(View v) {
+        StoreService.downloadFileWithdynamicUrlSync();
+    }
+
 
     public static Map<String,Integer> getAllLocalSimpleBaseAppsMap(Context context) {
         String selfPackageName = context.getPackageName();
