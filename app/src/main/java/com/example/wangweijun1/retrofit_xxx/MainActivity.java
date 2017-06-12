@@ -14,7 +14,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.example.retrofit.Crawler;
 import com.example.retrofit.DynamicBaseUrl;
+import com.example.retrofit.ErrorHandlingAdapter;
 import com.example.retrofit.HTTPSUtils;
 import com.example.retrofit.SimpleMockService;
 import com.example.retrofit.SimpleService;
@@ -361,6 +363,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+    }
+
+
+    public void crawlerTest(View v) {
+        try {
+            Crawler.main();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void handleException(View v) {
+        ErrorHandlingAdapter.main();
     }
 
 

@@ -189,5 +189,19 @@
             android:onClick="serviceMethodTest"
             android:text="service method test" />
 
+        <Button
+            android:id="@+id/button26"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="crawlerTest"
+            android:text="爬虫" />
+
+        <Button
+            android:id="@+id/button27"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="handleException"
+            android:text="异常处理" />
+
     </LinearLayout>
 </ScrollView>
