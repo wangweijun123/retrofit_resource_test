@@ -39,53 +39,8 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         }
-        URL url = null;
-        try {
-            url = new URL("xxxx");
-            HttpsURLConnection urlConnection =  (HttpsURLConnection)url.openConnection();
-            urlConnection.disconnect();;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Handler handler;
 
     }
-
-
-    public void getByHttpsSync(View v) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SimpleService.syncRequest();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    public void testBaiduHttps(View v) {
-        try {
-            SimpleService.testBaiduHttps();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void testHttpsUseCerti(View v) {
-        HTTPSUtils customTrust = new HTTPSUtils(this);
-
-        try {
-            customTrust.run();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     /**
      * 同步请求
@@ -97,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     StoreService.doGetSync();
-//                    SimpleService.syncRequest();
+//                    SimpleService.httpsRequest();
 //                    SimpleService2.syncRequestString();
 //                    MyService.test();
 //                    MyService.doGetSync();
@@ -112,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * 异步请求
+     * @param v
+     */
     public void doGetAsync(View v) {
         try {
             StoreService.doGetAsync();
@@ -120,6 +79,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    /**
+     * 取消请求
+     * @param v
+     */
     public void cancelCall(View v) {
         try {
             StoreService.cancelCall();
@@ -128,6 +92,56 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 测试https
+     * @param v
+     */
+    public void getByHttpsSync(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    SimpleService.httpsRequest();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 测试百度 https
+     * @param v
+     */
+    public void testBaiduHttps(View v) {
+        try {
+            SimpleService.testBaiduHttps();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * 客户端使用证书测试 https
+     * @param v
+     */
+    public void testHttpsUseCerti(View v) {
+        HTTPSUtils customTrust = new HTTPSUtils(this);
+
+        try {
+            customTrust.run();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * 查询参数与headers使用map get请求
+     * @param v
+     */
     public void doGetByMapAndHeaders(View v) {
         new Thread(new Runnable() {
             @Override
@@ -141,6 +155,10 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    /**
+     * post 请求
+     * @param v
+     */
     public void doPost(View v) {
         new Thread(new Runnable() {
             @Override
@@ -154,7 +172,10 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-
+    /**
+     * post 文件与参数
+     * @param v
+     */
     public void doPostFileAndParams(View v) {
         new Thread(new Runnable() {
             @Override
@@ -328,6 +349,20 @@ public class MainActivity extends AppCompatActivity {
     public void downloadFileWithdynamicUrlSync(View v) {
         StoreService.downloadFileWithdynamicUrlSync();
     }
+
+    public void serviceMethodTest(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.serviceMethodTest();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
 
 
     public static Map<String,Integer> getAllLocalSimpleBaseAppsMap(Context context) {

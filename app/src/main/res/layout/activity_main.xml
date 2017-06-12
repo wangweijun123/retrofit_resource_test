@@ -122,7 +122,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="doPostJson2"
-            android:text="doPostJson2 json 数据" />
+            android:text="post json 2数据" />
 
 
 
@@ -181,6 +181,13 @@
             android:layout_height="wrap_content"
             android:onClick="downloadFileWithdynamicUrlSync"
             android:text="下载" />
+
+        <Button
+            android:id="@+id/button25"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="serviceMethodTest"
+            android:text="service method test" />
 
     </LinearLayout>
 </ScrollView>

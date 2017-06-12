@@ -168,6 +168,7 @@ public final class Retrofit {
 
   ServiceMethod<?, ?> loadServiceMethod(Method method) {
     ServiceMethod<?, ?> result = serviceMethodCache.get(method);
+    Log.i(Retrofit.TAG, this + "  loadServiceMethod  method:"+method+", result:"+result);
     if (result != null) return result;
 
     synchronized (serviceMethodCache) {
@@ -175,6 +176,7 @@ public final class Retrofit {
       if (result == null) {
         result = new ServiceMethod.Builder<>(this, method).build();
         serviceMethodCache.put(method, result);
+        Log.i(Retrofit.TAG,  "put serviceMethodCache");
       }
     }
     return result;

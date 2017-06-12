@@ -55,7 +55,7 @@ public final class SimpleService {
   /**
    * @throws IOException
    */
-  public static void syncRequest() throws IOException {
+  public static void httpsRequest() throws IOException {
     // Create a very simple REST adapter which points the GitHub API.
     // Https://www.baidu.com/   从CA申请的证书, okhttp可以直接访问,我没改动代码，
     // 也没写与证书相关的代码，是底层处理了吗, 但是设置代理后出现SSLHandshakeException:

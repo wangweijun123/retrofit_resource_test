@@ -87,12 +87,13 @@ public class StoreService {
         Call<String> toStringConverterFactory(@QueryMap Map<String, String> pagefrom, @HeaderMap Map<String, String> headers);
 
 
+        //  @FieldMap parameters can only be used with form encoding
         @FormUrlEncoded
         @POST("mapi/edit/postrecommend")
         Call<MyResp> doPost(@FieldMap Map<String, String> map, @HeaderMap Map<String, String> headers);
 
-        @POST("record/dl")
-        Call<String> doPostForJson(@Body RequestBody requestBody);
+        @POST
+        Call<String> doPostForJson(@Url String url, @Body RequestBody requestBody);
 
         @Headers("Content-Type: application/json")
         @POST
@@ -149,6 +150,25 @@ public class StoreService {
         Log.i(Retrofit.TAG, "list status:"+list.status);
     }
 
+
+    public static void serviceMethodTest() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Response<MyResp> resp = call.execute();
+        MyResp list = resp.body();
+        Log.i(Retrofit.TAG, "list status:"+list.status);
+        Log.i(Retrofit.TAG,"##################");
+        call = service.doGet("1", "1", "RANK_HOT");
+        resp = call.execute();
+        list = resp.body();
+        Log.i(Retrofit.TAG, "list status:"+list.status);
+    }
+
     /**
      * 异步请求
      * @throws IOException
@@ -172,6 +192,7 @@ public class StoreService {
             @Override
             public void onResponse(Call<MyResp> call, Response<MyResp> response) {
                 MyResp list = response.body();
+                Log.i(Retrofit.TAG, response.headers().toString());
                 Log.i(Retrofit.TAG,  " list status:"+list.status+", tid:"+Thread.currentThread().getId());
             }
 
@@ -195,12 +216,8 @@ public class StoreService {
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        Log.i(Retrofit.TAG, "StoreService create service");
         StoreApi service = retrofit.create(StoreApi.class);
-        Log.i(Retrofit.TAG, "StoreService service doGet");
-        // pagefrom=1&pagesize=1&code=RANK_HOT";
         Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
-        Log.i(Retrofit.TAG, "StoreService call.execute() call:"+call);
         call.enqueue(new Callback<MyResp>() {
             @Override
             public void onResponse(Call<MyResp> call, Response<MyResp> response) {
@@ -283,6 +300,10 @@ public class StoreService {
         System.out.println("list status:"+list.status);
     }
 
+     static final String post_json_tv_store_url = "http://api.s5.letvstore.com/test2/api/apps/update?device=LETV_Le%2BX625&letvReleaseVersion=&letvSwVersion=&mac=02%253A00%253A00%253A00%253A00%253A00&letvUiVersion=&store=LETV&letvCarrier=-1&timeStamp=1496916296012&appVersion=5805&imei=868896020022309&letvDeviceType=-1&letvPlatform=-1&version=0&osVersion=6.0&letvHwVersion=&deviceInfo=Le%2BX625&letvUiType=&Authorization=";
+    /**
+     * post json ，但是这个接口随便传都行
+     */
     public static void doPostForJson() {
         // http://www.roundsapp.com/post
         // "http://download.log.letvstore.com/record/dl"
@@ -295,7 +316,7 @@ public class StoreService {
         StoreApi postRoute=retrofit.create(StoreApi.class);
         // 自己创建 RequestBody 指定类型
         RequestBody body=RequestBody.create(okhttp3.MediaType.parse("application/json; charset=utf-8"),bowlingJson("Jesse", "Jake"));
-        Call<String> call=postRoute.doPostForJson(body);
+        Call<String> call=postRoute.doPostForJson(post_json_tv_store_url, body);
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
@@ -307,6 +328,30 @@ public class StoreService {
                 Log.i(Retrofit.TAG, "onFailure" + t.getMessage());
             }
         });
+    }
+
+
+    public static void doPostJson2() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST) // 由于后面定义了Url，所以这里的base url是没用
+                .addConverterFactory(new ToStringConverterFactory())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<String> call = service.
+                doPostJson2(post_json_tv_store_url,
+                        "{\"com.gameloft.android.HEP.GloftA8HP\":\"5\"}");
+        Callback<String> callback = new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                Log.i(Retrofit.TAG, response.body());
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                t.printStackTrace();
+                Log.i(Retrofit.TAG, "onFailure status");
+            }
+        };
+        call.enqueue(callback);
     }
 
     static String bowlingJson(String player1, String player2) {
@@ -349,6 +394,10 @@ public class StoreService {
         System.out.println("list status:"+list.status);
     }
 
+    /**
+     * post 文件与参数
+     * @throws IOException
+     */
     public static void doPostFileAndParams() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
@@ -383,6 +432,10 @@ public class StoreService {
         System.out.println("list status:"+list.status);
     }
 
+    /**
+     * 返回字符串
+     * @throws IOException
+     */
     public static void customconverterFactory() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
@@ -402,6 +455,10 @@ public class StoreService {
         Log.i(Retrofit.TAG, "list status:"+list);
     }
 
+    /**
+     * 返回空
+     * @throws IOException
+     */
     public static void returnVoidconverterFactory() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
@@ -632,28 +689,7 @@ public class StoreService {
     }
 
 
-    public static void doPostJson2() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(URL_BASIC_SERVICE_TEST) // 由于后面定义了Url，所以这里的base url是没用
-                .addConverterFactory(new ToStringConverterFactory())
-                .build();
-        StoreApi service = retrofit.create(StoreApi.class);
-        Call<String> call = service.
-                doPostJson2("http://api.s5.letvstore.com/test2/api/apps/update?device=LETV_Le%2BX625&letvReleaseVersion=&letvSwVersion=&mac=02%253A00%253A00%253A00%253A00%253A00&letvUiVersion=&store=LETV&letvCarrier=-1&timeStamp=1496916296012&appVersion=5805&imei=868896020022309&letvDeviceType=-1&letvPlatform=-1&version=0&osVersion=6.0&letvHwVersion=&deviceInfo=Le%2BX625&letvUiType=&Authorization=",
-                        "{\"com.gameloft.android.HEP.GloftA8HP\":\"5\"}");
-        Callback<String> callback = new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                Log.i(Retrofit.TAG, response.body());
-            }
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                t.printStackTrace();
-                Log.i(Retrofit.TAG, "onFailure status");
-            }
-        };
-        call.enqueue(callback);
-    }
+
 
 
     public static Map<String, String> getCommonParamsMap() {
