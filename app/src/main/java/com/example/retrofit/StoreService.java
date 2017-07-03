@@ -193,7 +193,7 @@ public class StoreService {
             public void onResponse(Call<MyResp> call, Response<MyResp> response) {
                 MyResp list = response.body();
                 Log.i(Retrofit.TAG, response.headers().toString());
-                Log.i(Retrofit.TAG,  " list status:"+list.status+", tid:"+Thread.currentThread().getId());
+                Log.i(Retrofit.TAG,  response.code()+", "+response.message());
             }
 
             @Override

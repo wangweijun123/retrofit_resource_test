@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
@@ -187,5 +189,8 @@ public final class ErrorHandlingAdapter {
         System.err.println("FATAL ERROR " + t.getMessage());
       }
     });
+
+
   }
+
 }

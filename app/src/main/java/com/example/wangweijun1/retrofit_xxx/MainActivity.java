@@ -24,6 +24,7 @@ import com.example.retrofit.StoreService;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -379,6 +380,112 @@ public class MainActivity extends AppCompatActivity {
         ErrorHandlingAdapter.main();
     }
 
+    public void http200Sync(View v) {
+
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    CallTest.http200Sync();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+
+        ArrayList<User> list1 = new ArrayList<User>();
+        ArrayList<User> list2 = list1;
+        Log.i("wang", "list1.equals(list2) :" +list1.equals(list2));
+        User u = new User();
+        list1.add(u);
+        ArrayList<User> list3 = new ArrayList<User>();
+        list3.add(u);
+        Log.i("wang", "list1.equals(list3):" + list1.equals(list3));
+    }
+
+
+    class User{
+        int id;
+        String name;
+    }
+
+    /**
+     * break 就是跳出当前循环而已,如果是双层循环，那肯定只跳出里层循环，
+     * continue 进入当前循环的下一个继续，也就是说此循环contiue 后面语句不执行
+     * @param v
+     */
+    public void breakContinue(View v) {
+        for (int i=0; i<5; i++) {
+            Log.i("wang", "i="+i);
+            for (int j=0;j<4; j++) {
+                Log.i("wang", "j="+j);
+                if (j == 1){
+                    continue;
+                }
+                Log.i("wang", "---");
+            }
+            Log.i("wang", "##########");
+        }
+    }
+
+
+    public void listTest(View v) {
+        List<User> list1 = new ArrayList<>();
+        User u = new User();
+        u.id = 1;
+        u.name = "属于list 1";
+
+        User u2 = new User();
+        u2.id = 2;
+        u2.name = "属于list 1";
+        User u3 = new User();
+        u3.id = 3;
+        u3.name = "属于list 1";
+        list1.add(u);
+        list1.add(u2);
+        list1.add(u3);
+
+
+
+        List<User> list2 = new ArrayList<>();
+        User ux2 = new User();
+        ux2.id = 2;
+        ux2.name = "属于list 2";
+        User u22 = new User();
+        u22.id = 3;
+        u22.name = "属于list 2";
+        User u32 = new User();
+        u32.id = 4;
+        u32.name = "属于list 2";
+        list2.add(ux2);
+        list2.add(u22);
+        list2.add(u32);
+
+        test(list1, list2);
+    }
+
+    private void test(List<User> oldList, List<User> newList){
+        List<User> temp = new ArrayList<>();
+        for (int i=0; i<newList.size();i++) {
+            boolean exsit = false;
+            User newUser = newList.get(i);
+            for (int j=0;j<oldList.size();j++) {
+                User oldUser = oldList.get(j);
+                if (oldUser.id == newUser.id) {
+                    exsit = true;
+                    temp.add(oldUser);
+                    break;
+                }
+            }
+            if (!exsit) {
+                temp.add(newUser);
+            }
+        }
+
+        for(int i=0;i<temp.size();i++){
+            Log.i("wang", temp.get(i).id + ", "+temp.get(i).name);
+        }
+    }
 
 
     public static Map<String,Integer> getAllLocalSimpleBaseAppsMap(Context context) {
