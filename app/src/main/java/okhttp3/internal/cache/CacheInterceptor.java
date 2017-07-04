@@ -59,24 +59,22 @@ public final class CacheInterceptor implements Interceptor {
         : null;
 
     long now = System.currentTimeMillis();
-
+    Log.i(Retrofit.TAG, "cache:" + cache+", cacheCandidate:"+cacheCandidate);
     CacheStrategy strategy = new CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();
     Request networkRequest = strategy.networkRequest;
     Response cacheResponse = strategy.cacheResponse;
 
-    Log.i(Retrofit.TAG, this + " cache != null ? " + (cache != null));
+    Log.i(Retrofit.TAG, this + "cacheResponse: " + cacheResponse);
     if (cache != null) {
       cache.trackResponse(strategy);
     }
 
-    Log.i(Retrofit.TAG, this + " cacheCandidate != null ? " + (cacheCandidate != null)
-            + ", cacheResponse == null ? "+ (cacheResponse == null));
     if (cacheCandidate != null && cacheResponse == null) {
       closeQuietly(cacheCandidate.body()); // The cache candidate wasn't applicable. Close it.
     }
 
-    Log.i(Retrofit.TAG, this + " networkRequest == null ? " + (networkRequest == null)
-            + ", cacheResponse == null ? "+ (cacheResponse == null));
+    Log.i(Retrofit.TAG, this + " networkRequest : " + networkRequest+
+            ", cacheResponse :"+ cacheResponse);
     // If we're forbidden from using the network and the cache is insufficient, fail.
     if (networkRequest == null && cacheResponse == null) {
       return new Response.Builder()
@@ -90,7 +88,6 @@ public final class CacheInterceptor implements Interceptor {
           .build();
     }
 
-    Log.i(Retrofit.TAG, this + " networkRequest == null ? " + (networkRequest == null));
     // If we don't need the network, we're done.
     if (networkRequest == null) {
       return cacheResponse.newBuilder()

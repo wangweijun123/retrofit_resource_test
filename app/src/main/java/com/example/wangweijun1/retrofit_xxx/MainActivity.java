@@ -83,6 +83,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void testCacheInterceptor(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.testCacheInterceptor(getApplicationContext());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
     /**
      * 取消请求
      * @param v

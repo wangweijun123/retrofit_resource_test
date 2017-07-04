@@ -15,6 +15,8 @@
  */
 package okhttp3;
 
+import android.util.Log;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.Flushable;
@@ -47,6 +49,7 @@ import okio.ForwardingSource;
 import okio.Okio;
 import okio.Sink;
 import okio.Source;
+import retrofit2.Retrofit;
 
 /**
  * Caches HTTP and HTTPS responses to the filesystem so they may be reused, saving time and
@@ -188,10 +191,12 @@ public final class Cache implements Closeable, Flushable {
 
   Response get(Request request) {
     String key = key(request.url());
+    Log.i(Retrofit.TAG, "key:"+key);
     DiskLruCache.Snapshot snapshot;
     Entry entry;
     try {
       snapshot = cache.get(key);
+      Log.i(Retrofit.TAG, "snapshot:"+snapshot);
       if (snapshot == null) {
         return null;
       }
@@ -202,14 +207,17 @@ public final class Cache implements Closeable, Flushable {
 
     try {
       entry = new Entry(snapshot.getSource(ENTRY_METADATA));
+      Log.i(Retrofit.TAG, "entry:"+entry);
     } catch (IOException e) {
       Util.closeQuietly(snapshot);
       return null;
     }
 
     Response response = entry.response(snapshot);
-
-    if (!entry.matches(request, response)) {
+    Log.i(Retrofit.TAG, "response:"+response);
+    boolean matched = entry.matches(request, response);
+    Log.i(Retrofit.TAG, "matched:"+matched);
+    if (!matched) {
       Util.closeQuietly(response.body());
       return null;
     }

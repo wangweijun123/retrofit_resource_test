@@ -152,7 +152,10 @@ final class OkHttpCall<T> implements Call<T> {
     okhttp3.Call call;
 
     synchronized (this) {
-      if (executed) throw new IllegalStateException("Already executed.");
+      if (executed) {
+        throw new IllegalStateException("Already executed.");
+      }
+
       executed = true;
 
       if (creationFailure != null) {
@@ -186,7 +189,9 @@ final class OkHttpCall<T> implements Call<T> {
 
   private okhttp3.Call createRawCall() throws IOException {
     Request request = serviceMethod.toRequest(args);
+    // callFactory is class OkHttpClient
     okhttp3.Call call = serviceMethod.callFactory.newCall(request);
+    Log.i(Retrofit.TAG, this + " createRawCall  call:"+call);
     if (call == null) {
       throw new NullPointerException("Call.Factory returned null.");
     }

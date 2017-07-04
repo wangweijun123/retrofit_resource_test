@@ -1,5 +1,6 @@
 package com.example.retrofit;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.annotations.JsonAdapter;
@@ -14,8 +15,11 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import okhttp3.Cache;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.BuiltInConverters;
@@ -205,6 +209,22 @@ public class StoreService {
 
         Log.i(Retrofit.TAG, "id callback:"+callback);
         call.enqueue(callback);
+    }
+
+
+    public static void testCacheInterceptor(Context context) throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(new OkHttpClient.Builder()
+                        .cache(new Cache(context.getExternalCacheDir(), 100))
+                        .build())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Response<MyResp> resp = call.execute();
+        MyResp list = resp.body();
+        Log.i(Retrofit.TAG, "list status:"+list.status);
     }
 
     /**

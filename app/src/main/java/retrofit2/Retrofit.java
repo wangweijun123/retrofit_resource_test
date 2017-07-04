@@ -139,7 +139,13 @@ public final class Retrofit {
           @Override public Object invoke(Object proxy, Method method, Object[] args)
               throws Throwable {
               Log.i(TAG, "Retrofit invoke ...method:" + method.getName() + ", args:"+args);
-            // If the method is a method from Object then defer to normal invocation.
+            if (args != null) {
+              for (int i = 0; i < args.length; i++) {
+                Log.i(TAG,args[i].toString());
+              }
+            }
+
+                    // If the method is a method from Object then defer to normal invocation.
               Log.i(TAG, "(method.getDeclaringClass() == Object.class) : "+(method.getDeclaringClass() == Object.class));
             if (method.getDeclaringClass() == Object.class) {
               return method.invoke(this, args);
