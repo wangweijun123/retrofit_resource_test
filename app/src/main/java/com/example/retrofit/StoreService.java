@@ -3,6 +3,7 @@ package com.example.retrofit;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.JsonAdapter;
 
 import java.io.File;
@@ -74,6 +75,10 @@ public class StoreService {
         @GET("mapi/edit/recommend")
         Call<MyResp> doGet(@Query("pagefrom") String pagefrom, @Query("pagesize") String pagesize, @Query("code") String code);
 
+        // // http://123.125.91.30/api34/mapi/coop/business
+        @GET("api34/mapi/coop/business")
+        Call<MyCache> doTestCacheInterceptor();
+
         @GET("mapi/edit/recommend")
         Call<MyResp> doGetByMap(@QueryMap Map<String, String> pagefrom);
 
@@ -129,6 +134,11 @@ public class StoreService {
 
     public class MyResp {
         String status;
+    }
+
+    public class MyCache {
+        JsonObject
+                entity;
     }
 
 
@@ -210,21 +220,28 @@ public class StoreService {
         Log.i(Retrofit.TAG, "id callback:"+callback);
         call.enqueue(callback);
     }
+   static int cacheSize = 10 * 1024 * 1024; // 10 MiB
+// /storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache
 
-
+    /**
+     *  OkhttpClient 必须使用单例，牵涉到的成员变量，比如说缓存Cache
+     * @param context
+     * @throws IOException
+     */
     public static void testCacheInterceptor(Context context) throws IOException {
+        File cacheDir = context.getExternalCacheDir();
+        Log.i(Retrofit.TAG, "cacheDir : "+cacheDir.getAbsoluteFile());
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .baseUrl("http://123.125.91.30/")
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(new OkHttpClient.Builder()
-                        .cache(new Cache(context.getExternalCacheDir(), 100))
-                        .build())
+                .client(OkHttpUtils.getInstance().getCacheOkHttpClient())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
-        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
-        Response<MyResp> resp = call.execute();
-        MyResp list = resp.body();
-        Log.i(Retrofit.TAG, "list status:"+list.status);
+        // http://123.125.91.30/api34/mapi/coop/business
+        Call<MyCache> call = service.doTestCacheInterceptor();
+        Response<MyCache> resp = call.execute();
+        MyCache list = resp.body();
+        Log.i(Retrofit.TAG, "list entity:"+list.entity);
     }
 
     /**

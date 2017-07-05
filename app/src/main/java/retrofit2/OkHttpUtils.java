@@ -2,6 +2,7 @@ package retrofit2;
 
 import android.util.Log;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,9 +20,15 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttpUtils {
     private static volatile OkHttpUtils sInstance;
+
+    int cacheSize = 10 * 1024 * 1024; // 10 MiB
+
     private OkHttpClient mOkHttpClient;
 
     private OkHttpClient mDnsOkHttpClient;
+
+    private OkHttpClient mCacheOkHttpClient;
+
 
     private OkHttpUtils() {
 
@@ -47,6 +54,10 @@ public class OkHttpUtils {
                     }
                 })
                 .build();
+
+        mCacheOkHttpClient = new OkHttpClient.Builder()
+                .cache(new Cache(new File("/storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache"), cacheSize))
+                .build();
     }
 
     public static OkHttpUtils getInstance() {
@@ -66,6 +77,10 @@ public class OkHttpUtils {
 
     public OkHttpClient getHTTPDnsClient() {
         return mDnsOkHttpClient;
+    }
+
+    public OkHttpClient getCacheOkHttpClient() {
+        return mCacheOkHttpClient;
     }
 
     Dns HTTP_DNS = new Dns() {

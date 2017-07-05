@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.internal.http.HttpHeaders;
 
 /**
- * A Cache-Control header with cache directives from a server or client. These directives set policy
+ * A Cache-Control header with diskLruCache directives from a server or client. These directives set policy
  * on what responses can be stored, and which requests can be satisfied by those stored responses.
  *
  * <p>See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9">RFC 2616,
@@ -13,13 +13,13 @@ import okhttp3.internal.http.HttpHeaders;
 public final class CacheControl {
   /**
    * Cache control request directives that require network validation of responses. Note that such
-   * requests may be assisted by the cache via conditional GET requests.
+   * requests may be assisted by the diskLruCache via conditional GET requests.
    */
   public static final CacheControl FORCE_NETWORK = new Builder().noCache().build();
 
   /**
-   * Cache control request directives that uses the cache only, even if the cached response is
-   * stale. If the response isn't available in the cache or requires server validation, the call
+   * Cache control request directives that uses the diskLruCache only, even if the cached response is
+   * stale. If the response isn't available in the diskLruCache or requires server validation, the call
    * will fail with a {@code 504 Unsatisfiable Request}.
    */
   public static final CacheControl FORCE_CACHE = new Builder()
@@ -73,11 +73,11 @@ public final class CacheControl {
   }
 
   /**
-   * In a response, this field's name "no-cache" is misleading. It doesn't prevent us from caching
+   * In a response, this field's name "no-diskLruCache" is misleading. It doesn't prevent us from caching
    * the response; it only means we have to validate the response with the origin server before
    * returning it. We can do this with a conditional GET.
    *
-   * <p>In a request, it means do not use a cache to satisfy the request.
+   * <p>In a request, it means do not use a diskLruCache to satisfy the request.
    */
   public boolean noCache() {
     return noCache;
@@ -97,7 +97,7 @@ public final class CacheControl {
 
   /**
    * The "s-maxage" directive is the max age for shared caches. Not to be confused with "max-age"
-   * for non-shared caches, As in Firefox and Chrome, this directive is not honored by this cache.
+   * for non-shared caches, As in Firefox and Chrome, this directive is not honored by this diskLruCache.
    */
   public int sMaxAgeSeconds() {
     return sMaxAgeSeconds;
@@ -126,7 +126,7 @@ public final class CacheControl {
   /**
    * This field's name "only-if-cached" is misleading. It actually means "do not use the network".
    * It is set by a client who only wants to make a request if it can be fully satisfied by the
-   * cache. Cached responses that would require validation (ie. conditional gets) are not permitted
+   * diskLruCache. Cached responses that would require validation (ie. conditional gets) are not permitted
    * if this header is set.
    */
   public boolean onlyIfCached() {
@@ -138,7 +138,7 @@ public final class CacheControl {
   }
 
   /**
-   * Returns the cache directives of {@code headers}. This honors both Cache-Control and Pragma
+   * Returns the diskLruCache directives of {@code headers}. This honors both Cache-Control and Pragma
    * headers if they are present.
    */
   public static CacheControl parse(Headers headers) {
@@ -163,13 +163,13 @@ public final class CacheControl {
 
       if (name.equalsIgnoreCase("Cache-Control")) {
         if (headerValue != null) {
-          // Multiple cache-control headers means we can't use the raw value.
+          // Multiple diskLruCache-control headers means we can't use the raw value.
           canUseHeaderValue = false;
         } else {
           headerValue = value;
         }
       } else if (name.equalsIgnoreCase("Pragma")) {
-        // Might specify additional cache-control params. We invalidate just in case.
+        // Might specify additional diskLruCache-control params. We invalidate just in case.
         canUseHeaderValue = false;
       } else {
         continue;
@@ -205,7 +205,7 @@ public final class CacheControl {
           }
         }
 
-        if ("no-cache".equalsIgnoreCase(directive)) {
+        if ("no-diskLruCache".equalsIgnoreCase(directive)) {
           noCache = true;
         } else if ("no-store".equalsIgnoreCase(directive)) {
           noStore = true;
@@ -245,7 +245,7 @@ public final class CacheControl {
 
   private String headerValue() {
     StringBuilder result = new StringBuilder();
-    if (noCache) result.append("no-cache, ");
+    if (noCache) result.append("no-diskLruCache, ");
     if (noStore) result.append("no-store, ");
     if (maxAgeSeconds != -1) result.append("max-age=").append(maxAgeSeconds).append(", ");
     if (sMaxAgeSeconds != -1) result.append("s-maxage=").append(sMaxAgeSeconds).append(", ");
@@ -277,14 +277,14 @@ public final class CacheControl {
       return this;
     }
 
-    /** Don't store the server's response in any cache. */
+    /** Don't store the server's response in any diskLruCache. */
     public Builder noStore() {
       this.noStore = true;
       return this;
     }
 
     /**
-     * Sets the maximum age of a cached response. If the cache response's age exceeds {@code
+     * Sets the maximum age of a cached response. If the diskLruCache response's age exceeds {@code
      * maxAge}, it will not be used and a network request will be made.
      *
      * @param maxAge a non-negative integer. This is stored and transmitted with {@link
@@ -301,7 +301,7 @@ public final class CacheControl {
 
     /**
      * Accept cached responses that have exceeded their freshness lifetime by up to {@code
-     * maxStale}. If unspecified, stale cache responses will not be used.
+     * maxStale}. If unspecified, stale diskLruCache responses will not be used.
      *
      * @param maxStale a non-negative integer. This is stored and transmitted with {@link
      * TimeUnit#SECONDS} precision; finer precision will be lost.
@@ -333,7 +333,7 @@ public final class CacheControl {
     }
 
     /**
-     * Only accept the response if it is in the cache. If the response isn't cached, a {@code 504
+     * Only accept the response if it is in the diskLruCache. If the response isn't cached, a {@code 504
      * Unsatisfiable Request} response will be returned.
      */
     public Builder onlyIfCached() {

@@ -72,7 +72,7 @@ import okhttp3.internal.ws.RealWebSocket;
  *   // The singleton HTTP client.
  *   public final OkHttpClient client = new OkHttpClient.Builder()
  *       .addInterceptor(new HttpLoggingInterceptor())
- *       .cache(new Cache(cacheDir, cacheSize))
+ *       .diskLruCache(new Cache(cacheDir, cacheSize))
  *       .build();
  * }</pre>
  *
@@ -108,11 +108,11 @@ import okhttp3.internal.ws.RealWebSocket;
  *     client.connectionPool().evictAll();
  * }</pre>
  *
- * <p>If your client has a cache, call {@link Cache#close close()}. Note that it is an error to
- * create calls against a cache that is closed, and doing so will cause the call to crash.
+ * <p>If your client has a diskLruCache, call {@link Cache#close close()}. Note that it is an error to
+ * create calls against a diskLruCache that is closed, and doing so will cause the call to crash.
  * <pre>   {@code
  *
- *     client.cache().close();
+ *     client.diskLruCache().close();
  * }</pre>
  *
  * <p>OkHttp also uses daemon threads for HTTP/2 connections. These will exit automatically if they
@@ -391,7 +391,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
   /**
    * Returns an immutable list of interceptors that observe the full span of each call: from before
    * the connection is established (if any) until after the response source is selected (either the
-   * origin server, cache, or both).
+   * origin server, diskLruCache, or both).
    */
   public List<Interceptor> interceptors() {
     return interceptors;
@@ -597,13 +597,13 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       return this;
     }
 
-    /** Sets the response cache to be used to read and write cached responses. */
+    /** Sets the response diskLruCache to be used to read and write cached responses. */
     void setInternalCache(InternalCache internalCache) {
       this.internalCache = internalCache;
       this.cache = null;
     }
 
-    /** Sets the response cache to be used to read and write cached responses. */
+    /** Sets the response diskLruCache to be used to read and write cached responses. */
     public Builder cache(Cache cache) {
       this.cache = cache;
       this.internalCache = null;
@@ -862,7 +862,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     /**
      * Returns a modifiable list of interceptors that observe the full span of each call: from
      * before the connection is established (if any) until after the response source is selected
-     * (either the origin server, cache, or both).
+     * (either the origin server, diskLruCache, or both).
      */
     public List<Interceptor> interceptors() {
       return interceptors;

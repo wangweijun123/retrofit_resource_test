@@ -19,6 +19,7 @@ package okhttp3.internal.cache;
 import android.util.Log;
 
 import java.io.IOException;
+
 import okhttp3.Headers;
 import okhttp3.Interceptor;
 import okhttp3.Protocol;
@@ -44,6 +45,14 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static okhttp3.internal.Util.closeQuietly;
 import static okhttp3.internal.Util.discard;
 
+/**
+ * 读取cache，缓存response
+ * //在 ConnectInterceptor 之前添加的一个拦截器，也就是说，
+ * 在建立连接之前需要看看是否有可用缓存，如果可以则直接返回缓存，
+ * 否则就继续建立网络连接等操作
+ //代码较长、这里贴出核心部分(OkHttp 缓存处理逻辑)
+ */
+
 /** Serves requests from the cache and writes responses to the cache. */
 public final class CacheInterceptor implements Interceptor {
   final InternalCache cache;
@@ -53,29 +62,28 @@ public final class CacheInterceptor implements Interceptor {
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
-    Log.i(Retrofit.TAG, this + " intercept start ...");
+    Log.i(Retrofit.TAG, "CacheInterceptor intercept...");
     Response cacheCandidate = cache != null
         ? cache.get(chain.request())
         : null;
-
-    long now = System.currentTimeMillis();
     Log.i(Retrofit.TAG, "cache:" + cache+", cacheCandidate:"+cacheCandidate);
+    long now = System.currentTimeMillis();
+
     CacheStrategy strategy = new CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();
     Request networkRequest = strategy.networkRequest;
     Response cacheResponse = strategy.cacheResponse;
-
-    Log.i(Retrofit.TAG, this + "cacheResponse: " + cacheResponse);
+    Log.i(Retrofit.TAG, "cacheResponse:" + cacheResponse);
     if (cache != null) {
       cache.trackResponse(strategy);
     }
 
     if (cacheCandidate != null && cacheResponse == null) {
+      Log.i(Retrofit.TAG,"不能用 cacheCandidate 缓存，close it");
       closeQuietly(cacheCandidate.body()); // The cache candidate wasn't applicable. Close it.
     }
 
-    Log.i(Retrofit.TAG, this + " networkRequest : " + networkRequest+
-            ", cacheResponse :"+ cacheResponse);
     // If we're forbidden from using the network and the cache is insufficient, fail.
+    Log.i(Retrofit.TAG, "networkRequest:"+networkRequest);
     if (networkRequest == null && cacheResponse == null) {
       return new Response.Builder()
           .request(chain.request())
@@ -90,6 +98,7 @@ public final class CacheInterceptor implements Interceptor {
 
     // If we don't need the network, we're done.
     if (networkRequest == null) {
+      Log.i(Retrofit.TAG, "we don't need the network, we're done");
       return cacheResponse.newBuilder()
           .cacheResponse(stripBody(cacheResponse))
           .build();
@@ -105,10 +114,8 @@ public final class CacheInterceptor implements Interceptor {
       }
     }
 
-    Log.i(Retrofit.TAG, this + " cacheResponse != null ? " + (cacheResponse != null));
     // If we have a cache response too, then we're doing a conditional get.
     if (cacheResponse != null) {
-      Log.i(Retrofit.TAG, this + " networkResponse.code() == HTTP_NOT_MODIFIED ? " + (networkResponse.code() == HTTP_NOT_MODIFIED));
       if (networkResponse.code() == HTTP_NOT_MODIFIED) {
         Response response = cacheResponse.newBuilder()
             .headers(combine(cacheResponse.headers(), networkResponse.headers()))
@@ -134,11 +141,13 @@ public final class CacheInterceptor implements Interceptor {
         .networkResponse(stripBody(networkResponse))
         .build();
 
-    if (HttpHeaders.hasBody(response)) {
+    boolean hasBody = HttpHeaders.hasBody(response);
+    Log.i(Retrofit.TAG,  "hasBody:"+hasBody);
+    if (hasBody) {
       CacheRequest cacheRequest = maybeCache(response, networkResponse.request(), cache);
       response = cacheWritingResponse(cacheRequest, response);
     }
-    Log.i(Retrofit.TAG, this + " intercept end");
+    Log.i(Retrofit.TAG,  "CacheInterceptor intercept...end");
     return response;
   }
 
@@ -149,11 +158,13 @@ public final class CacheInterceptor implements Interceptor {
   }
 
   private CacheRequest maybeCache(Response userResponse, Request networkRequest,
-      InternalCache responseCache) throws IOException {
+                                  InternalCache responseCache) throws IOException {
     if (responseCache == null) return null;
 
     // Should we cache this response for this request?
-    if (!CacheStrategy.isCacheable(userResponse, networkRequest)) {
+    boolean isCacheable = CacheStrategy.isCacheable(userResponse, networkRequest);
+    Log.i(Retrofit.TAG, " isCacheable:"+isCacheable);
+    if (!isCacheable) {
       if (HttpMethod.invalidatesCache(networkRequest.method())) {
         try {
           responseCache.remove(networkRequest);
@@ -182,7 +193,7 @@ public final class CacheInterceptor implements Interceptor {
 
     final BufferedSource source = response.body().source();
     final BufferedSink cacheBody = Okio.buffer(cacheBodyUnbuffered);
-
+    Log.i(Retrofit.TAG, "Writing body to cache...thread id:"+Thread.currentThread().getId());
     Source cacheWritingSource = new Source() {
       boolean cacheRequestClosed;
 
@@ -208,6 +219,7 @@ public final class CacheInterceptor implements Interceptor {
 
         sink.copyTo(cacheBody.buffer(), sink.size() - bytesRead, bytesRead);
         cacheBody.emitCompleteSegments();
+        Log.i(Retrofit.TAG, "bytesRead:"+bytesRead + ", sink.size():"+sink.size()+", thread id:"+Thread.currentThread().getId());
         return bytesRead;
       }
 

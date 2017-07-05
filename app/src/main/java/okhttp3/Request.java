@@ -74,7 +74,7 @@ public final class Request {
   }
 
   /**
-   * Returns the cache control directives for this response. This is never null, even if this
+   * Returns the diskLruCache control directives for this response. This is never null, even if this
    * response contains no {@code Cache-Control} header.
    */
   public CacheControl cacheControl() {
@@ -189,9 +189,9 @@ public final class Request {
     }
 
     /**
-     * Sets this request's {@code Cache-Control} header, replacing any cache control headers already
+     * Sets this request's {@code Cache-Control} header, replacing any diskLruCache control headers already
      * present. If {@code cacheControl} doesn't define any directives, this clears this request's
-     * cache-control headers.
+     * diskLruCache-control headers.
      */
     public Builder cacheControl(CacheControl cacheControl) {
       String value = cacheControl.toString();

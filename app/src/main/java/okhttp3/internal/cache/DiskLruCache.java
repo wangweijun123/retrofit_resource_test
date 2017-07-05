@@ -15,6 +15,8 @@
  */
 package okhttp3.internal.cache;
 
+import android.util.Log;
+
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
@@ -40,6 +42,7 @@ import okio.BufferedSource;
 import okio.Okio;
 import okio.Sink;
 import okio.Source;
+import retrofit2.Retrofit;
 
 import static okhttp3.internal.platform.Platform.WARN;
 
@@ -208,10 +211,12 @@ public final class DiskLruCache implements Closeable, Flushable {
     assert Thread.holdsLock(this);
 
     if (initialized) {
+      Log.i(Retrofit.TAG, "缓存已初始化完毕");
       return; // Already initialized.
     }
-
+    Log.i(Retrofit.TAG, " initialize ....");
     // If a bkp file exists, use it instead.
+    Log.i(Retrofit.TAG, "fileSystem.exists(journalFileBackup) : "+fileSystem.exists(journalFileBackup));
     if (fileSystem.exists(journalFileBackup)) {
       // If journal file also exists just delete backup file.
       if (fileSystem.exists(journalFile)) {
@@ -220,7 +225,7 @@ public final class DiskLruCache implements Closeable, Flushable {
         fileSystem.rename(journalFileBackup, journalFile);
       }
     }
-
+    Log.i(Retrofit.TAG,"fileSystem.exists(journalFile) : "+fileSystem.exists(journalFile));
     // Prefer to pick up where we left off.
     if (fileSystem.exists(journalFile)) {
       try {
@@ -272,6 +277,7 @@ public final class DiskLruCache implements Closeable, Flushable {
   }
 
   private void readJournal() throws IOException {
+    Log.i(Retrofit.TAG, "readJournal ...journalFile:"+journalFile.getAbsoluteFile());
     BufferedSource source = Okio.buffer(fileSystem.source(journalFile));
     try {
       String magic = source.readUtf8LineStrict();
@@ -279,6 +285,9 @@ public final class DiskLruCache implements Closeable, Flushable {
       String appVersionString = source.readUtf8LineStrict();
       String valueCountString = source.readUtf8LineStrict();
       String blank = source.readUtf8LineStrict();
+      Log.i(Retrofit.TAG, "magic:"+magic+", version:"+version+
+              ", appVersionString:"+appVersionString+
+              ", valueCountString:"+valueCountString+", blank:"+blank);
       if (!MAGIC.equals(magic)
           || !VERSION_1.equals(version)
           || !Integer.toString(appVersion).equals(appVersionString)
@@ -297,7 +306,8 @@ public final class DiskLruCache implements Closeable, Flushable {
           break;
         }
       }
-      redundantOpCount = lineCount - lruEntries.size();
+      Log.i(Retrofit.TAG,"lineCount:"+lineCount);
+              redundantOpCount = lineCount - lruEntries.size();
 
       // If we ended on a truncated line, rebuild the journal before appending to it.
       if (!source.exhausted()) {
@@ -322,6 +332,7 @@ public final class DiskLruCache implements Closeable, Flushable {
   }
 
   private void readJournalLine(String line) throws IOException {
+    Log.i(Retrofit.TAG, "readJournalLine  line:" +line);
     int firstSpace = line.indexOf(' ');
     if (firstSpace == -1) {
       throw new IOException("unexpected journal line: " + line);
@@ -343,6 +354,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     Entry entry = lruEntries.get(key);
     if (entry == null) {
       entry = new Entry(key);
+      Log.i(Retrofit.TAG, " lruEntries  put key:"+key+", entry:"+entry);
       lruEntries.put(key, entry);
     }
 
@@ -432,15 +444,22 @@ public final class DiskLruCache implements Closeable, Flushable {
    * readable. If a value is returned, it is moved to the head of the LRU queue.
    */
   public synchronized Snapshot get(String key) throws IOException {
+
     initialize();
 
     checkNotClosed();
     validateKey(key);
     Entry entry = lruEntries.get(key);
-    if (entry == null || !entry.readable) return null;
+    Log.i(Retrofit.TAG, " entry ..."+entry);
+    if (entry == null || !entry.readable) {
+      return null;
+    }
 
     Snapshot snapshot = entry.snapshot();
-    if (snapshot == null) return null;
+    Log.i(Retrofit.TAG, " snapshot:"+snapshot);
+    if (snapshot == null) {
+      return null;
+    }
 
     redundantOpCount++;
     journalWriter.writeUtf8(READ).writeByte(' ').writeUtf8(key).writeByte('\n');
@@ -464,6 +483,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     checkNotClosed();
     validateKey(key);
     Entry entry = lruEntries.get(key);
+    Log.i(Retrofit.TAG, "entry == null ? " + (entry==null));
     if (expectedSequenceNumber != ANY_SEQUENCE_NUMBER && (entry == null
         || entry.sequenceNumber != expectedSequenceNumber)) {
       return null; // Snapshot is stale.
@@ -491,6 +511,8 @@ public final class DiskLruCache implements Closeable, Flushable {
 
     if (entry == null) {
       entry = new Entry(key);
+      Log.i(Retrofit.TAG, "elruEntries put key:" + key+
+      ", entry:"+entry);
       lruEntries.put(key, entry);
     }
     Editor editor = new Editor(entry);
@@ -824,6 +846,19 @@ public final class DiskLruCache implements Closeable, Flushable {
         Util.closeQuietly(in);
       }
     }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder();
+      sb.append("key:").append(key).append(", sequenceNumber:").append(sequenceNumber);
+      for (int i = 0; i<sources.length; i++) {
+        sb.append(", ").append(sources[i]).append(",");
+      }
+      for (int i = 0; i<lengths.length; i++) {
+        sb.append(", ").append(lengths[i]).append(",");
+      }
+      return sb.toString();
+    }
   }
 
   /** Edits the values for an entry. */
@@ -970,6 +1005,8 @@ public final class DiskLruCache implements Closeable, Flushable {
     /** The sequence number of the most recently committed edit to this entry. */
     long sequenceNumber;
 
+
+
     Entry(String key) {
       this.key = key;
 
@@ -980,13 +1017,18 @@ public final class DiskLruCache implements Closeable, Flushable {
       // The names are repetitive so re-use the same builder to avoid allocations.
       StringBuilder fileBuilder = new StringBuilder(key).append('.');
       int truncateTo = fileBuilder.length();
+      Log.i(Retrofit.TAG, "valueCount:"+valueCount);
       for (int i = 0; i < valueCount; i++) {
         fileBuilder.append(i);
         cleanFiles[i] = new File(directory, fileBuilder.toString());
         fileBuilder.append(".tmp");
         dirtyFiles[i] = new File(directory, fileBuilder.toString());
         fileBuilder.setLength(truncateTo);
+        Log.i(Retrofit.TAG, "cleanFiles[i]:"+cleanFiles[i].getAbsoluteFile()+
+                ", dirtyFiles[i]:"+dirtyFiles[i].getAbsoluteFile()+
+                ", fileBuilder:"+fileBuilder.toString());
       }
+
     }
 
     /** Set lengths using decimal numbers like "10123". */
@@ -1028,8 +1070,12 @@ public final class DiskLruCache implements Closeable, Flushable {
       try {
         for (int i = 0; i < valueCount; i++) {
           sources[i] = fileSystem.source(cleanFiles[i]);
+          Log.i(Retrofit.TAG,", sources i="+i +": "+ sources[i]);
         }
-        return new Snapshot(key, sequenceNumber, sources, lengths);
+
+        Snapshot snapshot = new Snapshot(key, sequenceNumber, sources, lengths);
+        Log.i(Retrofit.TAG, snapshot.toString());
+        return snapshot;
       } catch (FileNotFoundException e) {
         // A file must have been deleted manually!
         for (int i = 0; i < valueCount; i++) {
@@ -1047,6 +1093,19 @@ public final class DiskLruCache implements Closeable, Flushable {
         }
         return null;
       }
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i<cleanFiles.length; i++) {
+        sb.append(cleanFiles[i].getAbsoluteFile()).append(",");
+      }
+      for (int i = 0; i<dirtyFiles.length; i++) {
+        sb.append(dirtyFiles[i].getAbsoluteFile()).append(",");
+      }
+
+      return sb.toString();
     }
   }
 }

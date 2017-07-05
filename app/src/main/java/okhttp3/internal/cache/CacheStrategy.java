@@ -15,6 +15,8 @@
  */
 package okhttp3.internal.cache;
 
+import android.util.Log;
+
 import java.util.Date;
 import okhttp3.CacheControl;
 import okhttp3.Headers;
@@ -24,6 +26,7 @@ import okhttp3.internal.Internal;
 import okhttp3.internal.http.HttpDate;
 import okhttp3.internal.http.HttpHeaders;
 import okhttp3.internal.http.StatusLine;
+import retrofit2.Retrofit;
 
 import static java.net.HttpURLConnection.HTTP_BAD_METHOD;
 import static java.net.HttpURLConnection.HTTP_GONE;
@@ -183,9 +186,12 @@ public final class CacheStrategy {
     private CacheStrategy getCandidate() {
       // No cached response.
       if (cacheResponse == null) {
+        Log.i(Retrofit.TAG, "no cache response");
         return new CacheStrategy(request, null);
       }
 
+      Log.i(Retrofit.TAG, "request.isHttps() : "+request.isHttps()+
+      ", cacheResponse.handshake():"+cacheResponse.handshake());
       // Drop the cached response if it's missing a required handshake.
       if (request.isHttps() && cacheResponse.handshake() == null) {
         return new CacheStrategy(request, null);
@@ -194,12 +200,17 @@ public final class CacheStrategy {
       // If this response shouldn't have been stored, it should never be used
       // as a response source. This check should be redundant as long as the
       // persistence store is well-behaved and the rules are constant.
-      if (!isCacheable(cacheResponse, request)) {
+      boolean isCacheable = isCacheable(cacheResponse, request);
+      Log.i(Retrofit.TAG, " isCacheable:"+isCacheable);
+      if (!isCacheable) {
         return new CacheStrategy(request, null);
       }
 
       CacheControl requestCaching = request.cacheControl();
-      if (requestCaching.noCache() || hasConditions(request)) {
+      boolean noCache = requestCaching.noCache();
+      boolean hasConditions = hasConditions(request);
+      Log.i(Retrofit.TAG, " noCache:"+noCache+", hasConditions:"+hasConditions);
+      if (noCache || hasConditions) {
         return new CacheStrategy(request, null);
       }
 
@@ -220,8 +231,18 @@ public final class CacheStrategy {
       if (!responseCaching.mustRevalidate() && requestCaching.maxStaleSeconds() != -1) {
         maxStaleMillis = SECONDS.toMillis(requestCaching.maxStaleSeconds());
       }
-
-      if (!responseCaching.noCache() && ageMillis + minFreshMillis < freshMillis + maxStaleMillis) {
+      boolean responseNoCache = responseCaching.noCache();
+      //
+      boolean expire = ageMillis + minFreshMillis < freshMillis + maxStaleMillis;
+      Log.i(Retrofit.TAG,"ageMillis:"+ageMillis+", minFreshMillis:"+minFreshMillis+
+      ", freshMillis:"+freshMillis+", maxStaleMillis:"+maxStaleMillis);
+      Log.i(Retrofit.TAG, "ageMillis + minFreshMillis == "+(ageMillis + minFreshMillis));
+      Log.i(Retrofit.TAG,"freshMillis + maxStaleMillis == "+(freshMillis + maxStaleMillis));
+      Log.i(Retrofit.TAG, "responseNoCache:"+responseNoCache+", expire:"+expire);
+      // test 使用缓存
+      expire = true;
+      Log.i(Retrofit.TAG, "使用缓存，测试阶段");
+      if (!responseNoCache && expire) {
         Response.Builder builder = cacheResponse.newBuilder();
         if (ageMillis + minFreshMillis >= freshMillis) {
           builder.addHeader("Warning", "110 HttpURLConnection \"Response is stale\"");
@@ -230,6 +251,7 @@ public final class CacheStrategy {
         if (ageMillis > oneDayMillis && isFreshnessLifetimeHeuristic()) {
           builder.addHeader("Warning", "113 HttpURLConnection \"Heuristic expiration\"");
         }
+        Log.i(Retrofit.TAG, "use cache...");
         return new CacheStrategy(null, builder.build());
       }
 
@@ -247,6 +269,7 @@ public final class CacheStrategy {
         conditionName = "If-Modified-Since";
         conditionValue = servedDateString;
       } else {
+        Log.i(Retrofit.TAG, "No condition! Make a regular request.");
         return new CacheStrategy(request, null); // No condition! Make a regular request.
       }
 
@@ -256,6 +279,7 @@ public final class CacheStrategy {
       Request conditionalRequest = request.newBuilder()
           .headers(conditionalRequestHeaders.build())
           .build();
+      Log.i(Retrofit.TAG, "cache strategy return netRequest and cacheResponse");
       return new CacheStrategy(conditionalRequest, cacheResponse);
     }
 

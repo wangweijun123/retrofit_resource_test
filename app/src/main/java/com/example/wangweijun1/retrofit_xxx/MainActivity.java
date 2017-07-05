@@ -22,14 +22,20 @@ import com.example.retrofit.SimpleMockService;
 import com.example.retrofit.SimpleService;
 import com.example.retrofit.StoreService;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -95,6 +101,35 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
+    public void getCacheBody(View v) {
+        String headerFileName = "/storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache/7cfaf75e77a65080b5c7fae99df1a1e0.0";
+        String bodyFileName = "/storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache/7cfaf75e77a65080b5c7fae99df1a1e0.1";
+
+        readFile(headerFileName);
+        readFile(bodyFileName);
+    }
+
+    public static void readFile(String fileName) {
+        try {
+            FileInputStream in = new FileInputStream(fileName);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len = -1;
+            while ((len=in.read(buffer)) != -1) {
+                baos.write(buffer, 0, len);
+            }
+            byte[] body = baos.toByteArray();
+            String result = new String(body, "gb2312");
+            Log.i(Retrofit.TAG, "result:"+result);
+            in.close();
+            baos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 
     /**

@@ -57,31 +57,31 @@ import retrofit2.Retrofit;
  *
  * <h3>Cache Optimization</h3>
  *
- * <p>To measure cache effectiveness, this class tracks three statistics:
+ * <p>To measure diskLruCache effectiveness, this class tracks three statistics:
  * <ul>
  *     <li><strong>{@linkplain #requestCount() Request Count:}</strong> the number of HTTP
- *         requests issued since this cache was created.
+ *         requests issued since this diskLruCache was created.
  *     <li><strong>{@linkplain #networkCount() Network Count:}</strong> the number of those
  *         requests that required network use.
  *     <li><strong>{@linkplain #hitCount() Hit Count:}</strong> the number of those requests
- *         whose responses were served by the cache.
+ *         whose responses were served by the diskLruCache.
  * </ul>
  *
- * Sometimes a request will result in a conditional cache hit. If the cache contains a stale copy of
+ * Sometimes a request will result in a conditional diskLruCache hit. If the diskLruCache contains a stale copy of
  * the response, the client will issue a conditional {@code GET}. The server will then send either
  * the updated response if it has changed, or a short 'not modified' response if the client's copy
  * is still valid. Such responses increment both the network count and hit count.
  *
- * <p>The best way to improve the cache hit rate is by configuring the web server to return
+ * <p>The best way to improve the diskLruCache hit rate is by configuring the web server to return
  * cacheable responses. Although this client honors all <a
- * href="http://tools.ietf.org/html/rfc7234">HTTP/1.1 (RFC 7234)</a> cache headers, it doesn't cache
+ * href="http://tools.ietf.org/html/rfc7234">HTTP/1.1 (RFC 7234)</a> diskLruCache headers, it doesn't diskLruCache
  * partial responses.
  *
  * <h3>Force a Network Response</h3>
  *
  * <p>In some situations, such as after a user clicks a 'refresh' button, it may be necessary to
- * skip the cache, and fetch data directly from the server. To force a full refresh, add the {@code
- * no-cache} directive: <pre>   {@code
+ * skip the diskLruCache, and fetch data directly from the server. To force a full refresh, add the {@code
+ * no-diskLruCache} directive: <pre>   {@code
  *
  *   Request request = new Request.Builder()
  *       .cacheControl(new CacheControl.Builder().noCache().build())
@@ -144,10 +144,12 @@ public final class Cache implements Closeable, Flushable {
 
   final InternalCache internalCache = new InternalCache() {
     @Override public Response get(Request request) throws IOException {
+      Log.i(Retrofit.TAG, " get Response from request:"+request);
       return Cache.this.get(request);
     }
 
     @Override public CacheRequest put(Response response) throws IOException {
+      Log.i(Retrofit.TAG, "cacheCandidate put: response:"+response);
       return Cache.this.put(response);
     }
 
@@ -168,7 +170,7 @@ public final class Cache implements Closeable, Flushable {
     }
   };
 
-  final DiskLruCache cache;
+  final DiskLruCache diskLruCache;
 
   /* read and write statistics, all guarded by 'this' */
   int writeSuccessCount;
@@ -182,7 +184,7 @@ public final class Cache implements Closeable, Flushable {
   }
 
   Cache(File directory, long maxSize, FileSystem fileSystem) {
-    this.cache = DiskLruCache.create(fileSystem, directory, VERSION, ENTRY_COUNT, maxSize);
+    this.diskLruCache = DiskLruCache.create(fileSystem, directory, VERSION, ENTRY_COUNT, maxSize);
   }
 
   public static String key(HttpUrl url) {
@@ -195,13 +197,13 @@ public final class Cache implements Closeable, Flushable {
     DiskLruCache.Snapshot snapshot;
     Entry entry;
     try {
-      snapshot = cache.get(key);
+      snapshot = diskLruCache.get(key);
       Log.i(Retrofit.TAG, "snapshot:"+snapshot);
       if (snapshot == null) {
         return null;
       }
     } catch (IOException e) {
-      // Give up because the cache cannot be read.
+      // Give up because the diskLruCache cannot be read.
       return null;
     }
 
@@ -232,12 +234,12 @@ public final class Cache implements Closeable, Flushable {
       try {
         remove(response.request());
       } catch (IOException ignored) {
-        // The cache cannot be written.
+        // The diskLruCache cannot be written.
       }
       return null;
     }
     if (!requestMethod.equals("GET")) {
-      // Don't cache non-GET responses. We're technically allowed to cache
+      // Don't diskLruCache non-GET responses. We're technically allowed to diskLruCache
       // HEAD requests and some POST requests, but the complexity of doing
       // so is high and the benefit is low.
       return null;
@@ -250,7 +252,7 @@ public final class Cache implements Closeable, Flushable {
     Entry entry = new Entry(response);
     DiskLruCache.Editor editor = null;
     try {
-      editor = cache.edit(key(response.request().url()));
+      editor = diskLruCache.edit(key(response.request().url()));
       if (editor == null) {
         return null;
       }
@@ -263,7 +265,8 @@ public final class Cache implements Closeable, Flushable {
   }
 
   void remove(Request request) throws IOException {
-    cache.remove(key(request.url()));
+    Log.i(Retrofit.TAG,  "diskLruCache remove "+ key(request.url()));
+    diskLruCache.remove(key(request.url()));
   }
 
   void update(Response cached, Response network) {
@@ -282,7 +285,7 @@ public final class Cache implements Closeable, Flushable {
   }
 
   private void abortQuietly(DiskLruCache.Editor editor) {
-    // Give up because the cache cannot be written.
+    // Give up because the diskLruCache cannot be written.
     try {
       if (editor != null) {
         editor.abort();
@@ -292,48 +295,48 @@ public final class Cache implements Closeable, Flushable {
   }
 
   /**
-   * Initialize the cache. This will include reading the journal files from the storage and building
-   * up the necessary in-memory cache information.
+   * Initialize the diskLruCache. This will include reading the journal files from the storage and building
+   * up the necessary in-memory diskLruCache information.
    *
    * <p>The initialization time may vary depending on the journal file size and the current actual
-   * cache size. The application needs to be aware of calling this function during the
+   * diskLruCache size. The application needs to be aware of calling this function during the
    * initialization phase and preferably in a background worker thread.
    *
-   * <p>Note that if the application chooses to not call this method to initialize the cache. By
-   * default, the okhttp will perform lazy initialization upon the first usage of the cache.
+   * <p>Note that if the application chooses to not call this method to initialize the diskLruCache. By
+   * default, the okhttp will perform lazy initialization upon the first usage of the diskLruCache.
    */
   public void initialize() throws IOException {
-    cache.initialize();
+    diskLruCache.initialize();
   }
 
   /**
-   * Closes the cache and deletes all of its stored values. This will delete all files in the cache
-   * directory including files that weren't created by the cache.
+   * Closes the diskLruCache and deletes all of its stored values. This will delete all files in the diskLruCache
+   * directory including files that weren't created by the diskLruCache.
    */
   public void delete() throws IOException {
-    cache.delete();
+    diskLruCache.delete();
   }
 
   /**
-   * Deletes all values stored in the cache. In-flight writes to the cache will complete normally,
+   * Deletes all values stored in the diskLruCache. In-flight writes to the diskLruCache will complete normally,
    * but the corresponding responses will not be stored.
    */
   public void evictAll() throws IOException {
-    cache.evictAll();
+    diskLruCache.evictAll();
   }
 
   /**
-   * Returns an iterator over the URLs in this cache. This iterator doesn't throw {@code
+   * Returns an iterator over the URLs in this diskLruCache. This iterator doesn't throw {@code
    * ConcurrentModificationException}, but if new responses are added while iterating, their URLs
    * will not be returned. If existing responses are evicted during iteration, they will be absent
    * (unless they were already returned).
    *
    * <p>The iterator supports {@linkplain Iterator#remove}. Removing a URL from the iterator evicts
-   * the corresponding response from the cache. Use this to evict selected responses.
+   * the corresponding response from the diskLruCache. Use this to evict selected responses.
    */
   public Iterator<String> urls() throws IOException {
     return new Iterator<String>() {
-      final Iterator<DiskLruCache.Snapshot> delegate = cache.snapshots();
+      final Iterator<DiskLruCache.Snapshot> delegate = diskLruCache.snapshots();
 
       String nextUrl;
       boolean canRemove;
@@ -383,27 +386,27 @@ public final class Cache implements Closeable, Flushable {
   }
 
   public long size() throws IOException {
-    return cache.size();
+    return diskLruCache.size();
   }
 
   public long maxSize() {
-    return cache.getMaxSize();
+    return diskLruCache.getMaxSize();
   }
 
   @Override public void flush() throws IOException {
-    cache.flush();
+    diskLruCache.flush();
   }
 
   @Override public void close() throws IOException {
-    cache.close();
+    diskLruCache.close();
   }
 
   public File directory() {
-    return cache.getDirectory();
+    return diskLruCache.getDirectory();
   }
 
   public boolean isClosed() {
-    return cache.isClosed();
+    return diskLruCache.isClosed();
   }
 
   synchronized void trackResponse(CacheStrategy cacheStrategy) {
@@ -413,7 +416,7 @@ public final class Cache implements Closeable, Flushable {
       // If this is a conditional request, we'll increment hitCount if/when it hits.
       networkCount++;
     } else if (cacheStrategy.cacheResponse != null) {
-      // This response uses the cache and not the network. That's a cache hit.
+      // This response uses the diskLruCache and not the network. That's a diskLruCache hit.
       hitCount++;
     }
   }
@@ -546,6 +549,7 @@ public final class Cache implements Closeable, Flushable {
      */
     public Entry(Source in) throws IOException {
       try {
+        Log.i(Retrofit.TAG, "读取缓存header开始...");
         BufferedSource source = Okio.buffer(in);
         url = source.readUtf8LineStrict();
         requestMethod = source.readUtf8LineStrict();
@@ -560,6 +564,7 @@ public final class Cache implements Closeable, Flushable {
         protocol = statusLine.protocol;
         code = statusLine.code;
         message = statusLine.message;
+        Log.i(Retrofit.TAG, "statusLine:"+statusLine);
         Headers.Builder responseHeadersBuilder = new Headers.Builder();
         int responseHeaderLineCount = readInt(source);
         for (int i = 0; i < responseHeaderLineCount; i++) {
@@ -576,7 +581,7 @@ public final class Cache implements Closeable, Flushable {
             ? Long.parseLong(receivedResponseMillisString)
             : 0L;
         responseHeaders = responseHeadersBuilder.build();
-
+        Log.i(Retrofit.TAG, "responseHeaders:"+responseHeaders);
         if (isHttps()) {
           String blank = source.readUtf8LineStrict();
           if (blank.length() > 0) {
@@ -596,6 +601,7 @@ public final class Cache implements Closeable, Flushable {
       } finally {
         in.close();
       }
+      Log.i(Retrofit.TAG, "读取缓存header end");
     }
 
     public Entry(Response response) {
@@ -612,9 +618,11 @@ public final class Cache implements Closeable, Flushable {
     }
 
     public void writeTo(DiskLruCache.Editor editor) throws IOException {
+      Log.i(Retrofit.TAG, "write header to sdcard ...");
       BufferedSink sink = Okio.buffer(editor.newSink(ENTRY_METADATA));
-
-      sink.writeUtf8(url)
+      Log.i(Retrofit.TAG, "url:"+url+", requestMethod:"+requestMethod+
+      ", varyHeaders.size():"+varyHeaders.size());
+              sink.writeUtf8(url)
           .writeByte('\n');
       sink.writeUtf8(requestMethod)
           .writeByte('\n');
@@ -636,6 +644,7 @@ public final class Cache implements Closeable, Flushable {
             .writeUtf8(": ")
             .writeUtf8(responseHeaders.value(i))
             .writeByte('\n');
+        Log.i(Retrofit.TAG, responseHeaders.name(i) + " : " + responseHeaders.value(i));
       }
       sink.writeUtf8(SENT_MILLIS)
           .writeUtf8(": ")
@@ -645,7 +654,8 @@ public final class Cache implements Closeable, Flushable {
           .writeUtf8(": ")
           .writeDecimalLong(receivedResponseMillis)
           .writeByte('\n');
-
+      Log.i(Retrofit.TAG, "protocol:"+protocol+", code:"+code+
+      ", message:"+message+", ");
       if (isHttps()) {
         sink.writeByte('\n');
         sink.writeUtf8(handshake.cipherSuite().javaName())
@@ -659,6 +669,7 @@ public final class Cache implements Closeable, Flushable {
         }
       }
       sink.close();
+      Log.i(Retrofit.TAG, "write header to sdcard finished");
     }
 
     private boolean isHttps() {
@@ -752,11 +763,12 @@ public final class Cache implements Closeable, Flushable {
       this.snapshot = snapshot;
       this.contentType = contentType;
       this.contentLength = contentLength;
-
       Source source = snapshot.getSource(ENTRY_BODY);
+      Log.i(Retrofit.TAG, "读取缓存body开始 source:"+source);
       bodySource = Okio.buffer(new ForwardingSource(source) {
         @Override public void close() throws IOException {
           snapshot.close();
+          Log.i(Retrofit.TAG, "读取缓存body end");
           super.close();
         }
       });

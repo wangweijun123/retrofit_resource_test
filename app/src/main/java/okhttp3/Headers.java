@@ -241,7 +241,7 @@ public final class Headers {
 
     /**
      * Add a header line without any validation. Only appropriate for headers from the remote peer
-     * or cache.
+     * or diskLruCache.
      */
     Builder addLenient(String line) {
       int index = line.indexOf(":", 1);
@@ -249,7 +249,7 @@ public final class Headers {
         return addLenient(line.substring(0, index), line.substring(index + 1));
       } else if (line.startsWith(":")) {
         // Work around empty header names and header names that start with a
-        // colon (created by old broken SPDY versions of the response cache).
+        // colon (created by old broken SPDY versions of the response diskLruCache).
         return addLenient("", line.substring(1)); // Empty header name.
       } else {
         return addLenient("", line); // No header name.
@@ -273,7 +273,7 @@ public final class Headers {
 
     /**
      * Add a field with the specified value without any validation. Only appropriate for headers
-     * from the remote peer or cache.
+     * from the remote peer or diskLruCache.
      */
     Builder addLenient(String name, String value) {
       namesAndValues.add(name);

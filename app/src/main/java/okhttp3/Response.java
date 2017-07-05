@@ -205,8 +205,8 @@ public final class Response implements Closeable {
   }
 
   /**
-   * Returns the raw response received from the cache. Will be null if this response didn't use the
-   * cache. For conditional get requests the cache response and network response may both be
+   * Returns the raw response received from the diskLruCache. Will be null if this response didn't use the
+   * diskLruCache. For conditional get requests the diskLruCache response and network response may both be
    * non-null. The body of the returned response should not be read.
    */
   public Response cacheResponse() {
@@ -242,7 +242,7 @@ public final class Response implements Closeable {
   }
 
   /**
-   * Returns the cache control directives for this response. This is never null, even if this
+   * Returns the diskLruCache control directives for this response. This is never null, even if this
    * response contains no {@code Cache-Control} header.
    */
   public CacheControl cacheControl() {
@@ -253,7 +253,7 @@ public final class Response implements Closeable {
   /**
    * Returns a {@linkplain System#currentTimeMillis() timestamp} taken immediately before OkHttp
    * transmitted the initiating request over the network. If this response is being served from the
-   * cache then this is the timestamp of the original request.
+   * diskLruCache then this is the timestamp of the original request.
    */
   public long sentRequestAtMillis() {
     return sentRequestAtMillis;
@@ -262,7 +262,7 @@ public final class Response implements Closeable {
   /**
    * Returns a {@linkplain System#currentTimeMillis() timestamp} taken immediately after OkHttp
    * received this response's headers from the network. If this response is being served from the
-   * cache then this is the timestamp of the original response.
+   * diskLruCache then this is the timestamp of the original response.
    */
   public long receivedResponseAtMillis() {
     return receivedResponseAtMillis;
