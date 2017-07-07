@@ -15,6 +15,8 @@
  */
 package okhttp3;
 
+import android.util.Log;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +26,7 @@ import java.nio.charset.Charset;
 import okhttp3.internal.Util;
 import okio.Buffer;
 import okio.BufferedSource;
+import retrofit2.Retrofit;
 
 import static okhttp3.internal.Util.UTF_8;
 
@@ -153,6 +156,7 @@ public abstract class ResponseBody implements Closeable {
    * UTF-8.
    */
   public final Reader charStream() {
+    Log.i(Retrofit.TAG, "把source转化为reader");
     Reader r = reader;
     return r != null ? r : (reader = new BomAwareReader(source(), charset()));
   }

@@ -208,6 +208,7 @@ public final class Cache implements Closeable, Flushable {
     }
 
     try {
+      // 获取到头文件信息
       entry = new Entry(snapshot.getSource(ENTRY_METADATA));
       Log.i(Retrofit.TAG, "entry:"+entry);
     } catch (IOException e) {
@@ -270,6 +271,7 @@ public final class Cache implements Closeable, Flushable {
   }
 
   void update(Response cached, Response network) {
+    Log.i(Retrofit.TAG, " update... ");
     Entry entry = new Entry(network);
     DiskLruCache.Snapshot snapshot = ((CacheResponseBody) cached.body()).snapshot;
     DiskLruCache.Editor editor = null;
@@ -454,8 +456,10 @@ public final class Cache implements Closeable, Flushable {
             }
             done = true;
             writeSuccessCount++;
+            Log.i(Retrofit.TAG, "close outputstream for write body");
           }
           super.close();
+          Log.i(Retrofit.TAG, "update journal file for key");
           editor.commit();
         }
       };
@@ -764,11 +768,11 @@ public final class Cache implements Closeable, Flushable {
       this.contentType = contentType;
       this.contentLength = contentLength;
       Source source = snapshot.getSource(ENTRY_BODY);
-      Log.i(Retrofit.TAG, "读取缓存body开始 source:"+source);
+      Log.i(Retrofit.TAG, "找到缓存body source:"+source);
       bodySource = Okio.buffer(new ForwardingSource(source) {
         @Override public void close() throws IOException {
           snapshot.close();
-          Log.i(Retrofit.TAG, "读取缓存body end");
+          Log.i(Retrofit.TAG, "关闭读取缓存body的输入流");
           super.close();
         }
       });

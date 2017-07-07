@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -250,6 +251,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     rebuildJournal();
 
     initialized = true;
+    Log.i(Retrofit.TAG, " initialize ....finised");
   }
 
   /**
@@ -306,9 +308,10 @@ public final class DiskLruCache implements Closeable, Flushable {
           break;
         }
       }
-      Log.i(Retrofit.TAG,"lineCount:"+lineCount);
-              redundantOpCount = lineCount - lruEntries.size();
 
+      redundantOpCount = lineCount - lruEntries.size();
+      Log.i(Retrofit.TAG,"lineCount:"+lineCount+", lruEntries.size():"+
+              lruEntries.size()+", redundantOpCount:"+redundantOpCount);
       // If we ended on a truncated line, rebuild the journal before appending to it.
       if (!source.exhausted()) {
         rebuildJournal();
@@ -357,7 +360,7 @@ public final class DiskLruCache implements Closeable, Flushable {
       Log.i(Retrofit.TAG, " lruEntries  put key:"+key+", entry:"+entry);
       lruEntries.put(key, entry);
     }
-
+    printlruEntries();
     if (secondSpace != -1 && firstSpace == CLEAN.length() && line.startsWith(CLEAN)) {
       String[] parts = line.substring(secondSpace + 1).split(" ");
       entry.readable = true;
@@ -406,6 +409,8 @@ public final class DiskLruCache implements Closeable, Flushable {
 
     BufferedSink writer = Okio.buffer(fileSystem.sink(journalFileTmp));
     try {
+      Log.i(Retrofit.TAG, "rebuild journal file");
+      Log.i(Retrofit.TAG, "write to libcore.io.DiskLruCache ....");
       writer.writeUtf8(MAGIC).writeByte('\n');
       writer.writeUtf8(VERSION_1).writeByte('\n');
       writer.writeDecimalLong(appVersion).writeByte('\n');
@@ -417,11 +422,13 @@ public final class DiskLruCache implements Closeable, Flushable {
           writer.writeUtf8(DIRTY).writeByte(' ');
           writer.writeUtf8(entry.key);
           writer.writeByte('\n');
+          Log.i(Retrofit.TAG, "write to DIRTY ...key:"+entry.key);
         } else {
           writer.writeUtf8(CLEAN).writeByte(' ');
           writer.writeUtf8(entry.key);
           entry.writeLengths(writer);
           writer.writeByte('\n');
+          Log.i(Retrofit.TAG, "write to CLEAN....key:"+entry.key);
         }
       }
     } finally {
@@ -483,7 +490,8 @@ public final class DiskLruCache implements Closeable, Flushable {
     checkNotClosed();
     validateKey(key);
     Entry entry = lruEntries.get(key);
-    Log.i(Retrofit.TAG, "entry == null ? " + (entry==null));
+    printlruEntries();
+    Log.i(Retrofit.TAG,key+ "对应的 entry == null ? " + (entry==null));
     if (expectedSequenceNumber != ANY_SEQUENCE_NUMBER && (entry == null
         || entry.sequenceNumber != expectedSequenceNumber)) {
       return null; // Snapshot is stale.
@@ -510,14 +518,26 @@ public final class DiskLruCache implements Closeable, Flushable {
     }
 
     if (entry == null) {
+      Log.i(Retrofit.TAG,"先根据key:"+key+"创建file，放入map中，然后在把头信息与body信息写入文件");
       entry = new Entry(key);
-      Log.i(Retrofit.TAG, "elruEntries put key:" + key+
-      ", entry:"+entry);
+      Log.i(Retrofit.TAG, "put key:" + key+
+      ", entry:"+entry + " to lruEntries");
       lruEntries.put(key, entry);
+      printlruEntries();
     }
     Editor editor = new Editor(entry);
     entry.currentEditor = editor;
     return editor;
+  }
+
+  private void printlruEntries() {
+    Iterator<Map.Entry<String, Entry>> iter = lruEntries.entrySet().iterator();
+    Log.i(Retrofit.TAG, "打印 lruEntries ....");
+    while (iter.hasNext()) {
+      Map.Entry<String, Entry> en = iter.next();
+      Log.i(Retrofit.TAG, en.getKey() + " : " + en.getValue().toString());
+    }
+    Log.i(Retrofit.TAG, "打印 lruEntries finised");
   }
 
   /** Returns the directory where this cache stores its data. */
@@ -596,6 +616,7 @@ public final class DiskLruCache implements Closeable, Flushable {
       journalWriter.writeUtf8(entry.key);
       entry.writeLengths(journalWriter);
       journalWriter.writeByte('\n');
+      Log.i(Retrofit.TAG, "completeEdit write to CLEAN ...key:"+entry.key);
       if (success) {
         entry.sequenceNumber = nextSequenceNumber++;
       }
@@ -604,6 +625,7 @@ public final class DiskLruCache implements Closeable, Flushable {
       journalWriter.writeUtf8(REMOVE).writeByte(' ');
       journalWriter.writeUtf8(entry.key);
       journalWriter.writeByte('\n');
+      Log.i(Retrofit.TAG, "completeEdit write to REMOVE ...key:"+entry.key);
     }
     journalWriter.flush();
 
@@ -641,6 +663,7 @@ public final class DiskLruCache implements Closeable, Flushable {
   }
 
   boolean removeEntry(Entry entry) throws IOException {
+    Log.i(Retrofit.TAG, "removeEntry : " +entry);
     if (entry.currentEditor != null) {
       entry.currentEditor.detach(); // Prevent the edit from completing normally.
     }
@@ -701,6 +724,7 @@ public final class DiskLruCache implements Closeable, Flushable {
   }
 
   void trimToSize() throws IOException {
+    Log.i(Retrofit.TAG, "size:"+size+", maxSize:"+maxSize);
     while (size > maxSize) {
       Entry toEvict = lruEntries.values().iterator().next();
       removeEntry(toEvict);
@@ -949,6 +973,7 @@ public final class DiskLruCache implements Closeable, Flushable {
      * may be started on the same key.
      */
     public void commit() throws IOException {
+      Log.i(Retrofit.TAG, "commit() ... ");
       synchronized (DiskLruCache.this) {
         if (done) {
           throw new IllegalStateException();
@@ -965,6 +990,7 @@ public final class DiskLruCache implements Closeable, Flushable {
      * key.
      */
     public void abort() throws IOException {
+      Log.i(Retrofit.TAG, " call abort ");
       synchronized (DiskLruCache.this) {
         if (done) {
           throw new IllegalStateException();
@@ -988,6 +1014,9 @@ public final class DiskLruCache implements Closeable, Flushable {
     }
   }
 
+  /**
+   * 保存key对本地文件的引用
+   */
   private final class Entry {
     final String key;
 
@@ -1024,8 +1053,8 @@ public final class DiskLruCache implements Closeable, Flushable {
         fileBuilder.append(".tmp");
         dirtyFiles[i] = new File(directory, fileBuilder.toString());
         fileBuilder.setLength(truncateTo);
-        Log.i(Retrofit.TAG, "cleanFiles[i]:"+cleanFiles[i].getAbsoluteFile()+
-                ", dirtyFiles[i]:"+dirtyFiles[i].getAbsoluteFile()+
+        Log.i(Retrofit.TAG, "i=" +i +" cleanFiles "+cleanFiles[i].getAbsoluteFile()+
+                ", i=" +i + " dirtyFiles "+dirtyFiles[i].getAbsoluteFile()+
                 ", fileBuilder:"+fileBuilder.toString());
       }
 
@@ -1049,6 +1078,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     /** Append space-prefixed lengths to {@code writer}. */
     void writeLengths(BufferedSink writer) throws IOException {
       for (long length : lengths) {
+        Log.i(Retrofit.TAG, "write length : " + length);
         writer.writeByte(' ').writeDecimalLong(length);
       }
     }

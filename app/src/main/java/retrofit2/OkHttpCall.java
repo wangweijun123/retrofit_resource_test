@@ -208,7 +208,7 @@ final class OkHttpCall<T> implements Call<T> {
 
     int code = rawResponse.code();
 
-    Log.i(Retrofit.TAG, this + "response code:"+code);
+    Log.i(Retrofit.TAG, this + " response code:"+code + ", rawBody:"+rawBody);
     if (code < 200 || code >= 300) {
       try {
         // Buffer the entire body to avoid future I/O.

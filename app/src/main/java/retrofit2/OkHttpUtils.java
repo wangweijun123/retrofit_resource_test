@@ -22,6 +22,8 @@ public class OkHttpUtils {
     private static volatile OkHttpUtils sInstance;
 
     int cacheSize = 10 * 1024 * 1024; // 10 MiB
+    // 测试超过缓存大小，删除文件与内存应用
+//    int cacheSize = 9500;
 
     private OkHttpClient mOkHttpClient;
 

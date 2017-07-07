@@ -49,6 +49,8 @@ public final class Dispatcher {
   /** 准备异步请求的队列，当正在运行的请求数量大于最大请求数量，先把它放到准备请求队列中暂存，
    * 当某一个请求完成后，从准备请求队列中取出添加到runningsAysnCalls，立马执行请求 */
   /** Ready async calls in the order they'll be run. */
+
+  /** 这三个队列只是对call的一个引用，new 的线程的workQueue才是真正的任务队列，这个为了每台主机同时运行5个任务来计算的*/
   private final Deque<AsyncCall> readyAsyncCalls = new ArrayDeque<>();
 
   /** Running asynchronous calls. Includes canceled calls that haven't finished yet. */

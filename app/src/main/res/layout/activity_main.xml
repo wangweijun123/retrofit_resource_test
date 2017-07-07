@@ -31,7 +31,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="testCacheInterceptor"
-            android:text="缓存测试" />
+            android:text="缓存http测试" />
+
+        <Button
+            android:id="@+id/button12123"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testHttpsCacheInterceptor"
+            android:text="缓存https测试" />
 
         <Button
             android:id="@+id/button1212"

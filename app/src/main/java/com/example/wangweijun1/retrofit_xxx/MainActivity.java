@@ -102,6 +102,21 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    public void testHttpsCacheInterceptor(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.testHttpsCacheInterceptor(getApplicationContext());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
+
     public void getCacheBody(View v) {
         String headerFileName = "/storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache/7cfaf75e77a65080b5c7fae99df1a1e0.0";
         String bodyFileName = "/storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache/7cfaf75e77a65080b5c7fae99df1a1e0.1";

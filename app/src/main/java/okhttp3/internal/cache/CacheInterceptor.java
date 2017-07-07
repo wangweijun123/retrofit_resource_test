@@ -129,6 +129,7 @@ public final class CacheInterceptor implements Interceptor {
         // Update the cache after combining headers but before stripping the
         // Content-Encoding header (as performed by initContentStream()).
         cache.trackConditionalCacheHit();
+        Log.i(Retrofit.TAG,  "update cache");
         cache.update(cacheResponse, response);
         return response;
       } else {
@@ -147,7 +148,7 @@ public final class CacheInterceptor implements Interceptor {
       CacheRequest cacheRequest = maybeCache(response, networkResponse.request(), cache);
       response = cacheWritingResponse(cacheRequest, response);
     }
-    Log.i(Retrofit.TAG,  "CacheInterceptor intercept...end");
+    Log.i(Retrofit.TAG,  "CacheInterceptor intercept...end thread id:"+Thread.currentThread().getId());
     return response;
   }
 
@@ -193,7 +194,7 @@ public final class CacheInterceptor implements Interceptor {
 
     final BufferedSource source = response.body().source();
     final BufferedSink cacheBody = Okio.buffer(cacheBodyUnbuffered);
-    Log.i(Retrofit.TAG, "Writing body to cache...thread id:"+Thread.currentThread().getId());
+    Log.i(Retrofit.TAG, "找到cacheBody");
     Source cacheWritingSource = new Source() {
       boolean cacheRequestClosed;
 
@@ -219,7 +220,7 @@ public final class CacheInterceptor implements Interceptor {
 
         sink.copyTo(cacheBody.buffer(), sink.size() - bytesRead, bytesRead);
         cacheBody.emitCompleteSegments();
-        Log.i(Retrofit.TAG, "bytesRead:"+bytesRead + ", sink.size():"+sink.size()+", thread id:"+Thread.currentThread().getId());
+        Log.i(Retrofit.TAG, "Writing body to cache finished bytesRead:"+bytesRead + ", sink.size():"+sink.size()+", thread id:"+Thread.currentThread().getId());
         return bytesRead;
       }
 

@@ -35,9 +35,11 @@ final class GsonResponseBodyConverter<T> implements Converter<ResponseBody, T> {
   }
 
   @Override public T convert(ResponseBody value) throws IOException {
+    Log.i(Retrofit.TAG, "gson parse ... ");
     JsonReader jsonReader = gson.newJsonReader(value.charStream());
     try {
       T t = adapter.read(jsonReader);
+      Log.i(Retrofit.TAG, "gson parse finised t :"+t);
       return t;
     } finally {
       value.close();

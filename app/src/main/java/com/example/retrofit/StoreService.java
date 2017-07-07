@@ -79,6 +79,11 @@ public class StoreService {
         @GET("api34/mapi/coop/business")
         Call<MyCache> doTestCacheInterceptor();
 
+        @GET("helloworld.txt")
+        Call<String> doTestHttpsCacheInterceptor();
+
+
+
         @GET("mapi/edit/recommend")
         Call<MyResp> doGetByMap(@QueryMap Map<String, String> pagefrom);
 
@@ -152,13 +157,11 @@ public class StoreService {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(OkHttpUtils.getInstance().getCacheOkHttpClient())
                 .build();
-        Log.i(Retrofit.TAG, "StoreService create service");
         StoreApi service = retrofit.create(StoreApi.class);
-        Log.i(Retrofit.TAG, "StoreService service doGet");
         // pagefrom=1&pagesize=1&code=RANK_HOT";
         Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
-        Log.i(Retrofit.TAG, "StoreService call.execute()");
         Response<MyResp> resp = call.execute();
         MyResp list = resp.body();
         Log.i(Retrofit.TAG, "list status:"+list.status);
@@ -231,17 +234,34 @@ public class StoreService {
     public static void testCacheInterceptor(Context context) throws IOException {
         File cacheDir = context.getExternalCacheDir();
         Log.i(Retrofit.TAG, "cacheDir : "+cacheDir.getAbsoluteFile());
+        //  http://123.125.91.30/api34/mapi/coop/business
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://123.125.91.30/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(OkHttpUtils.getInstance().getCacheOkHttpClient())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
-        // http://123.125.91.30/api34/mapi/coop/business
         Call<MyCache> call = service.doTestCacheInterceptor();
         Response<MyCache> resp = call.execute();
         MyCache list = resp.body();
         Log.i(Retrofit.TAG, "list entity:"+list.entity);
+    }
+
+
+    public static void testHttpsCacheInterceptor(Context context) throws IOException {
+        File cacheDir = context.getExternalCacheDir();
+        Log.i(Retrofit.TAG, "cacheDir : "+cacheDir.getAbsoluteFile());
+        //  https://publicobject.com/helloworld.txt
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://publicobject.com/")
+                .addConverterFactory(new ToStringConverterFactory())
+                .client(OkHttpUtils.getInstance().getCacheOkHttpClient())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<String> call = service.doTestHttpsCacheInterceptor();
+        Response<String> resp = call.execute();
+        String str = resp.body();
+        Log.i(Retrofit.TAG, "result is ok");
     }
 
     /**
