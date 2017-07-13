@@ -95,6 +95,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   // The fields below track connection state and are guarded by connectionPool.
 
   /** If true, no new streams can be created on this connection. Once true this is always true. */
+  /**  标识该连接已经不可用,true 为该连接空闲*/
   public boolean noNewStreams;
 
   public int successCount;
@@ -102,13 +103,17 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   /**
    * The maximum number of concurrent streams that can be carried by this connection. If {@code
    * allocations.size() < allocationLimit} then new streams can be created on this connection.
+   * 连接之上分配流个上线
    */
   public int allocationLimit = 1;
 
-  /** Current streams carried by this connection. */
+  /** Current streams carried by this connection.
+   * 当前连接上引用多少个StreamAllocation， http1.x只容许一个
+   * 为何连接上的流管理不在realconnection 中执行(add , remove)*/
   public final List<Reference<StreamAllocation>> allocations = new ArrayList<>();
 
   /** Nanotime timestamp when {@code allocations.size()} reached zero. */
+  /** 记录该连接处于空闲状态的时间 */
   public long idleAtNanos = Long.MAX_VALUE;
 
   public RealConnection(ConnectionPool connectionPool, Route route) {
@@ -152,7 +157,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
           connectSocket(connectTimeout, readTimeout);
         }
         establishProtocol(connectionSpecSelector);
-        break;
+        break;// 不抛异常就终止循环了
       } catch (IOException e) {
         closeQuietly(socket);
         closeQuietly(rawSocket);
@@ -223,6 +228,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
 
     rawSocket.setSoTimeout(readTimeout);
     try {
+      //内部就是调用socket.connect(InetAddress, timeout)方法建立连接
       Platform.get().connectSocket(rawSocket, route.socketAddress(), connectTimeout);
     } catch (ConnectException e) {
       ConnectException ce = new ConnectException("Failed to connect to " + route.socketAddress());
@@ -238,6 +244,9 @@ public final class RealConnection extends Http2Connection.Listener implements Co
             (route.address().sslSocketFactory() == null));
     if (route.address().sslSocketFactory() == null) {
       protocol = Protocol.HTTP_1_1;
+      Log.i(Retrofit.TAG,"" +
+              "" +
+              "socket is rawSocket");
       socket = rawSocket;
       return;
     }
@@ -296,6 +305,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       String maybeProtocol = connectionSpec.supportsTlsExtensions()
           ? Platform.get().getSelectedProtocol(sslSocket)
           : null;
+      Log.i(Retrofit.TAG,"socket is sslSocket");
       socket = sslSocket;
       source = Okio.buffer(Okio.source(socket));
       sink = Okio.buffer(Okio.sink(socket));
@@ -453,6 +463,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       socket.setSoTimeout(client.readTimeoutMillis());
       source.timeout().timeout(client.readTimeoutMillis(), MILLISECONDS);
       sink.timeout().timeout(client.writeTimeoutMillis(), MILLISECONDS);
+      Log.i(Retrofit.TAG, "####socket:"+socket+", source:"+source+", sink:"+sink);
       return new Http1Codec(client, streamAllocation, source, sink);
     }
   }
@@ -460,6 +471,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   public RealWebSocket.Streams newWebSocketStreams(final StreamAllocation streamAllocation) {
     return new RealWebSocket.Streams(true, source, sink) {
       @Override public void close() throws IOException {
+        Log.i(Retrofit.TAG, "RealWebSocket close ...");
         streamAllocation.streamFinished(true, streamAllocation.codec());
       }
     };

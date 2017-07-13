@@ -93,6 +93,12 @@ public final class StreamAllocation {
     this.callStackTrace = callStackTrace;
   }
 
+  /**
+   * 负责寻找连接，并在连接(Connection)上建立新的流(stream)
+   * @param client
+   * @param doExtensiveHealthChecks
+   * @return
+   */
   public HttpCodec newStream(OkHttpClient client, boolean doExtensiveHealthChecks) {
     int connectTimeout = client.connectTimeoutMillis();
     int readTimeout = client.readTimeoutMillis();
@@ -103,7 +109,7 @@ public final class StreamAllocation {
       RealConnection resultConnection = findHealthyConnection(connectTimeout, readTimeout,
           writeTimeout, connectionRetryEnabled, doExtensiveHealthChecks);
       HttpCodec resultCodec = resultConnection.newCodec(client, this);
-
+      Log.i(Retrofit.TAG, "####resultCodec:"+resultCodec);
       synchronized (connectionPool) {
         codec = resultCodec;
         return resultCodec;
@@ -170,12 +176,13 @@ public final class StreamAllocation {
       Internal.instance.get(connectionPool, address, this, null);
       Log.i(Retrofit.TAG," connection :" + connection);
       if (connection != null) {
+        Log.i(Retrofit.TAG,"从连接池中获取到了连接");
         return connection;
       }
 
       selectedRoute = route;
     }
-
+    Log.i(Retrofit.TAG,"连接池中没有该地址的连接，需要创建新连接");
     // If we need a route, make one. This is a blocking operation.
     Log.i(Retrofit.TAG,"If we need a route, make one. This is a blocking operation");
     Log.i(Retrofit.TAG, "selectedRoute == null ? " +(selectedRoute == null));
@@ -199,6 +206,7 @@ public final class StreamAllocation {
       route = selectedRoute;
       refusedStreamCount = 0;
       result = new RealConnection(connectionPool, selectedRoute);
+      Log.i(Retrofit.TAG, "创建新连接同时在连接上增加allocations StreamAllocationReference");
       acquire(result);
     }
     Log.i(Retrofit.TAG,"Do TCP + TLS handshakes. This is a blocking operation");
@@ -225,6 +233,7 @@ public final class StreamAllocation {
   }
 
   public void streamFinished(boolean noNewStreams, HttpCodec codec) {
+    Log.i(Retrofit.TAG, "streamFinished....");
     Socket socket;
     synchronized (connectionPool) {
       if (codec == null || codec != this.codec) {
@@ -253,6 +262,7 @@ public final class StreamAllocation {
   }
 
   public void release() {
+    Log.i(Retrofit.TAG, "release....");
     Socket socket;
     synchronized (connectionPool) {
       socket = deallocate(false, true, false);
@@ -262,6 +272,7 @@ public final class StreamAllocation {
 
   /** Forbid new streams from being created on the connection that hosts this allocation. */
   public void noNewStreams() {
+    Log.i(Retrofit.TAG, "noNewStreams....");
     Socket socket;
     synchronized (connectionPool) {
       socket = deallocate(true, false, false);
@@ -291,6 +302,7 @@ public final class StreamAllocation {
         connection.noNewStreams = true;
       }
       if (this.codec == null && (this.released || connection.noNewStreams)) {
+        Log.i(Retrofit.TAG, "release conncection ....");
         release(connection);
         if (connection.allocations.isEmpty()) {
           connection.idleAtNanos = System.nanoTime();
@@ -320,6 +332,7 @@ public final class StreamAllocation {
   }
 
   public void streamFailed(IOException e) {
+    Log.i(Retrofit.TAG, "streamFailed....");
     Socket socket;
     boolean noNewStreams = false;
 
@@ -356,20 +369,24 @@ public final class StreamAllocation {
   /**
    * Use this allocation to hold {@code connection}. Each call to this must be paired with a call to
    * {@link #release} on the same connection.
+   * 将StreamAllocation对象添加到列表
    */
   public void acquire(RealConnection connection) {
     assert (Thread.holdsLock(connectionPool));
     if (this.connection != null) throw new IllegalStateException();
 
     this.connection = connection;
+    Log.i(Retrofit.TAG, "添加该连接上的StreamAllocationReference");
     connection.allocations.add(new StreamAllocationReference(this, callStackTrace));
   }
 
   /** Remove this allocation from the connection's list of allocations. */
+  /** 将StreamAllocation对象从列表中移除 */
   private void release(RealConnection connection) {
     for (int i = 0, size = connection.allocations.size(); i < size; i++) {
       Reference<StreamAllocation> reference = connection.allocations.get(i);
       if (reference.get() == this) {
+        Log.i(Retrofit.TAG, "删除该连接上的StreamAllocationReference");
         connection.allocations.remove(i);
         return;
       }
@@ -387,6 +404,7 @@ public final class StreamAllocation {
    */
   public Socket releaseAndAcquire(RealConnection newConnection) {
     assert (Thread.holdsLock(connectionPool));
+    Log.i(Retrofit.TAG, "releaseAndAcquire....");
     if (codec != null || connection.allocations.size() != 1) throw new IllegalStateException();
 
     // Release the old connection.
@@ -395,6 +413,7 @@ public final class StreamAllocation {
 
     // Acquire the new connection.
     this.connection = newConnection;
+    Log.i(Retrofit.TAG, "添加new连接上的StreamAllocationReference");
     newConnection.allocations.add(onlyAllocation);
 
     return socket;

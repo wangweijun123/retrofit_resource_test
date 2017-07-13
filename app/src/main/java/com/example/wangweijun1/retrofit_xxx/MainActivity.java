@@ -551,6 +551,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void testConnection(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.testConnection();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+    public void testConnection2(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.testConnection2();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
 
     public static Map<String,Integer> getAllLocalSimpleBaseAppsMap(Context context) {
         String selfPackageName = context.getPackageName();

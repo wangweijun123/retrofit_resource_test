@@ -15,6 +15,8 @@
  */
 package okhttp3.internal.http1;
 
+import android.util.Log;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ProtocolException;
@@ -41,6 +43,7 @@ import okio.Okio;
 import okio.Sink;
 import okio.Source;
 import okio.Timeout;
+import retrofit2.Retrofit;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static okhttp3.internal.Util.checkOffsetAndCount;
@@ -65,6 +68,7 @@ import static okhttp3.internal.http.StatusLine.HTTP_CONTINUE;
  * <p>Exchanges that do not have a request body may skip creating and closing the request body.
  * Exchanges that do not have a response body can call {@link #newFixedLengthSource(long)
  * newFixedLengthSource(0)} and may skip reading and closing that source.
+ * 与服务器进行读写操作的类,读写headers,因为拥有输入输出流对象(从RealConnection中传过来)
  */
 public final class Http1Codec implements HttpCodec {
   private static final int STATE_IDLE = 0; // Idle connections are ready to write request headers.
@@ -363,6 +367,7 @@ public final class Http1Codec implements HttpCodec {
 
       state = STATE_CLOSED;
       if (streamAllocation != null) {
+        Log.i(Retrofit.TAG, "endOfInput ...");
         streamAllocation.streamFinished(!reuseConnection, Http1Codec.this);
       }
     }

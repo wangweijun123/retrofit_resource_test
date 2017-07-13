@@ -471,6 +471,8 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       certificatePinner = CertificatePinner.DEFAULT;
       proxyAuthenticator = Authenticator.NONE;
       authenticator = Authenticator.NONE;
+      // 注意每次new OkhttpClient 就新new了一个连接池，Okhttpclient必须是单例
+      // 这个连接池才起作用，不仅仅是连接池，还有其他的东西哈
       connectionPool = new ConnectionPool();
       dns = Dns.SYSTEM;
       followSslRedirects = true;

@@ -110,7 +110,7 @@ public final class RealInterceptorChain implements Interceptor.Chain {
     if (response == null) {
       throw new NullPointerException("interceptor " + interceptor + " returned null");
     }
-
+    Log.i(Retrofit.TAG, "拦截器已经全部调用完");
     return response;
   }
 }

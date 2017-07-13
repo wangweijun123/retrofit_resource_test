@@ -746,6 +746,33 @@ public class StoreService {
     }
 
 
+    public static void testConnection() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Response<MyResp> resp = call.execute();
+        MyResp list = resp.body();
+        Log.i(Retrofit.TAG, "list status:"+list.status);
+    }
+
+    public static void testConnection2() throws IOException {
+        //  https://publicobject.com/helloworld.txt
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://publicobject.com/")
+                .addConverterFactory(new ToStringConverterFactory())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<String> call = service.doTestHttpsCacheInterceptor();
+        Response<String> resp = call.execute();
+        String str = resp.body();
+        Log.i(Retrofit.TAG, "result is ok");
+    }
 
 
 

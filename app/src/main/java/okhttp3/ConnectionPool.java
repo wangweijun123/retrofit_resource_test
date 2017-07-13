@@ -54,7 +54,9 @@ public final class ConnectionPool {
       new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp ConnectionPool", true));
 
   /** The maximum number of idle connections for each address. */
+  /** 初始化5个连接 */
   private final int maxIdleConnections;
+  /** 初始化每个连接活着的时间5分钟 */
   private final long keepAliveDurationNs;
   private final Runnable cleanupRunnable = new Runnable() {
     @Override public void run() {
@@ -76,6 +78,7 @@ public final class ConnectionPool {
   };
 
   private final Deque<RealConnection> connections = new ArrayDeque<>();
+  // 是一个黑名单，用来记录不可用的route
   final RouteDatabase routeDatabase = new RouteDatabase();
   boolean cleanupRunning;
 
@@ -83,9 +86,10 @@ public final class ConnectionPool {
    * Create a new connection pool with tuning parameters appropriate for a single-user application.
    * The tuning parameters in this pool are subject to change in future OkHttp releases. Currently
    * this pool holds up to 5 idle connections which will be evicted after 5 minutes of inactivity.
+   *
    */
   public ConnectionPool() {
-    this(5, 5, TimeUnit.MINUTES);
+    this(1, 1, TimeUnit.MINUTES);
   }
 
   public ConnectionPool(int maxIdleConnections, long keepAliveDuration, TimeUnit timeUnit) {
@@ -161,9 +165,13 @@ public final class ConnectionPool {
   /**
    * Notify this pool that {@code connection} has become idle. Returns true if the connection has
    * been removed from the pool and should be closed.
+   * 标识一个连接处于了空闲状态，即没有流任务
    */
   boolean connectionBecameIdle(RealConnection connection) {
     assert (Thread.holdsLock(this));
+    Log.i(Retrofit.TAG,"connection.noNewStreams:"+connection.noNewStreams+", maxIdleConnections:"+maxIdleConnections);
+    //这里noNewStream标志位之前说过，它可以理解为该连接已经不可用，所以可以直接清理，
+    // 而maxIdleConnections==0则标识不允许有空闲连接，也是可以直接清理的
     if (connection.noNewStreams || maxIdleConnections == 0) {
       connections.remove(connection);
       Log.i(Retrofit.TAG,"connectionBecameIdle connections.remove(connection)  size"+connections.size());
@@ -185,7 +193,7 @@ public final class ConnectionPool {
           evictedConnections.add(connection);
           i.remove();
           Log.i(Retrofit.TAG,"evictAll connections remove size:"
-                  +connections.size() + ", evictedConnections size:"+evictedConnections.size());
+                  +connections.size() + ", evictedConnections size:"+evictedConnections.size()+", noNewStreams is true");
         }
       }
     }
@@ -216,37 +224,46 @@ public final class ConnectionPool {
         // If the connection is in use, keep searching.
         if (pruneAndGetAllocationCount(connection, now) > 0) {
           inUseConnectionCount++;
+          Log.i(Retrofit.TAG, "正在使用的连接数量 inUseConnectionCount:"+inUseConnectionCount);
           continue;
         }
 
         idleConnectionCount++;
-
-        // If the connection is ready to be evicted, we're done.
+        Log.i(Retrofit.TAG, "空闲连接数量 idleConnectionCount:"+idleConnectionCount);
+                // If the connection is ready to be evicted, we're done.
         long idleDurationNs = now - connection.idleAtNanos;
+        // 找出空闲时间最长的连接以及对应的空闲时间
+        Log.i(Retrofit.TAG, "idleDurationNs:"+idleDurationNs + ", longestIdleDurationNs:"+longestIdleDurationNs);
         if (idleDurationNs > longestIdleDurationNs) {
           longestIdleDurationNs = idleDurationNs;
           longestIdleConnection = connection;
         }
       }
+
       Log.i(Retrofit.TAG,"longestIdleDurationNs:"+longestIdleDurationNs+
       ", this.keepAliveDurationNs:"+this.keepAliveDurationNs +
       ", idleConnectionCount:"+idleConnectionCount +
       ", this.maxIdleConnections:"+this.maxIdleConnections);
 
+      // 遵循两个指标,最大空闲连接数量和最大空闲时长的判断,满足其一，执行清理,然后循环执行
       if (longestIdleDurationNs >= this.keepAliveDurationNs
           || idleConnectionCount > this.maxIdleConnections) {
         // We've found a connection to evict. Remove it from the list, then close it below (outside
         // of the synchronized block).
+        //在符合清理条件下，清理空闲时间最长的连接
         connections.remove(longestIdleConnection);
         Log.i(Retrofit.TAG,"connections.remove(longestIdleConnection connections size :"+connections.size());
       } else if (idleConnectionCount > 0) {
         // A connection will be ready to evict soon.
+        Log.i(Retrofit.TAG, "不符合清理条件，则返回下次需要执行清理的等待时间");
         return keepAliveDurationNs - longestIdleDurationNs;
       } else if (inUseConnectionCount > 0) {
         // All connections are in use. It'll be at least the keep alive duration 'til we run again.
+        Log.i(Retrofit.TAG,"没有空闲的连接，则隔keepAliveDuration之后再次执行");
         return keepAliveDurationNs;
       } else {
         // No connections, idle or in use.
+        Log.i(Retrofit.TAG, "清理结束");
         cleanupRunning = false;
         return -1;
       }
@@ -255,6 +272,7 @@ public final class ConnectionPool {
     closeQuietly(longestIdleConnection.socket());
 
     // Cleanup again immediately.
+    //这里是在清理一个空闲时间最长的连接以后会执行到这里，需要立即再次执行清理
     return 0;
   }
 
@@ -263,17 +281,21 @@ public final class ConnectionPool {
    * {@code connection}. Allocations are leaked if the connection is tracking them but the
    * application code has abandoned them. Leak detection is imprecise and relies on garbage
    * collection.
+   *
    */
   private int pruneAndGetAllocationCount(RealConnection connection, long now) {
     List<Reference<StreamAllocation>> references = connection.allocations;
-    for (int i = 0; i < references.size(); ) {
+    int size = references.size();
+    Log.i(Retrofit.TAG, "该连接上流的size ："+ size);
+    for (int i = 0; i < size; ) {
       Reference<StreamAllocation> reference = references.get(i);
-
-      if (reference.get() != null) {
+      StreamAllocation streamAllocation = reference.get();
+      Log.i(Retrofit.TAG, "streamAllocation : " +streamAllocation);
+      if (streamAllocation != null) {
         i++;
         continue;
       }
-
+      Log.i(Retrofit.TAG, "该连接上没流的分配");
       // We've discovered a leaked allocation. This is an application bug.
       StreamAllocation.StreamAllocationReference streamAllocRef =
           (StreamAllocation.StreamAllocationReference) reference;

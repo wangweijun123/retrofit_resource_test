@@ -66,6 +66,8 @@ import java.net.Socket;
  * <p>Note that an allocation may be released before its stream is completed. This is intended to
  * make bookkeeping easier for the caller: releasing the allocation as soon as the terminal stream
  * has been found. But only complete the stream once its data stream has been exhausted.
+ *
+ * 作用服务器建立连接
  */
 public interface Connection {
   /** Returns the route used by this connection. */

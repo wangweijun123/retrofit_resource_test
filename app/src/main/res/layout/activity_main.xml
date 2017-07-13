@@ -246,6 +246,18 @@
             android:onClick="listTest"
             android:text="测试list" />
 
+        <Button
+            android:id="@+id/button31"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testConnection"
+            android:text="测试connection 1" />
+        <Button
+            android:id="@+id/button32"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testConnection2"
+            android:text="测试connection 2" />
 
     </LinearLayout>
 </ScrollView>

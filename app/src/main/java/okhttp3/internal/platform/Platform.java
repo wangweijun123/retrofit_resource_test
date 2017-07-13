@@ -16,6 +16,8 @@
  */
 package okhttp3.internal.platform;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
@@ -33,6 +35,7 @@ import okhttp3.internal.tls.BasicCertificateChainCleaner;
 import okhttp3.internal.tls.CertificateChainCleaner;
 import okhttp3.internal.tls.TrustRootIndex;
 import okio.Buffer;
+import retrofit2.Retrofit;
 
 /**
  * Access to platform-specific features.
@@ -121,6 +124,7 @@ public class Platform {
 
   public void connectSocket(Socket socket, InetSocketAddress address,
       int connectTimeout) throws IOException {
+    Log.i(Retrofit.TAG, "socket connect " + address);
     socket.connect(address, connectTimeout);
   }
 

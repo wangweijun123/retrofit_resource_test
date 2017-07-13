@@ -28,6 +28,8 @@ import okhttp3.internal.http.RealInterceptorChain;
 import retrofit2.Retrofit;
 /**
  * 访问网络，好像是在访问api接口前，提前发现网络问题
+ * 创建三个重要的对象， StreamAllocation(这个已经在Retry..Interceptor类中创建)，
+ * RealConnection(从连接池中找到)， HttpCodec(在连接上建立新的流)
  */
 
 /** Opens a connection to the target server and proceeds to the next interceptor. */
@@ -42,10 +44,12 @@ public final class ConnectInterceptor implements Interceptor {
     Log.i(Retrofit.TAG, this + " intercept start ...");
     RealInterceptorChain realChain = (RealInterceptorChain) chain;
     Request request = realChain.request();
+    // streamAllocation 是在RetryAndFollowupInterceptor.java 中生成
     StreamAllocation streamAllocation = realChain.streamAllocation();
 
     // We need the network to satisfy this request. Possibly for validating a conditional GET.
     boolean doExtensiveHealthChecks = !request.method().equals("GET");
+    // 这里为何要去newStream 产生一个新的HttpCodec对象
     HttpCodec httpCodec = streamAllocation.newStream(client, doExtensiveHealthChecks);
     RealConnection connection = streamAllocation.connection();
 
