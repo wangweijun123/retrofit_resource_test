@@ -38,6 +38,7 @@ public class OkHttpUtils {
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         mOkHttpClient = new OkHttpClient.Builder()
+                .addNetworkInterceptor(httpLoggingInterceptor)
                 .build();
 
 

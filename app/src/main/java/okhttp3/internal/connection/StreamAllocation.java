@@ -71,6 +71,8 @@ import static okhttp3.internal.Util.closeQuietly;
  * smallest blast radius possible. If an HTTP/2 stream is active, canceling will cancel that stream
  * but not the other streams sharing its connection. But if the TLS handshake is still in progress
  * then canceling may break the entire connection.
+ *
+ * 用来控制Connections/Streams的资源分配与释放
  */
 public final class StreamAllocation {
   public final Address address;

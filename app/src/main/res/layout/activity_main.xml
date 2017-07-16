@@ -259,5 +259,13 @@
             android:onClick="testConnection2"
             android:text="测试connection 2" />
 
+        <Button
+            android:id="@+id/button33"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testReDirectUrl"
+            android:text="重定向测试" />
+
+
     </LinearLayout>
 </ScrollView>

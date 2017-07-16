@@ -264,6 +264,21 @@ public class StoreService {
         Log.i(Retrofit.TAG, "result is ok");
     }
 
+
+    public static void testReDirectUrl() throws IOException {
+        //  http://publicobject.com/helloworld.txt
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://publicobject.com/")
+                .addConverterFactory(new ToStringConverterFactory())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<String> call = service.doTestHttpsCacheInterceptor();
+        Response<String> resp = call.execute();
+        String str = resp.body();
+        Log.i(Retrofit.TAG, "result is ok");
+    }
+
     /**
      * 取消请求
      * @throws IOException

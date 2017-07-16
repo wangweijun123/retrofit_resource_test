@@ -47,6 +47,7 @@ public final class CallServerInterceptor implements Interceptor {
     Request request = realChain.request();
 
     long sentRequestMillis = System.currentTimeMillis();
+    // 向服务器发送header数据
     httpCodec.writeRequestHeaders(request);
 
     Response.Builder responseBuilder = null;
@@ -65,6 +66,7 @@ public final class CallServerInterceptor implements Interceptor {
         // Write the request body if the "Expect: 100-continue" expectation was met.
         Sink requestBodyOut = httpCodec.createRequestBody(request, request.body().contentLength());
         BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);
+        // 向服务器发送request body数据
         request.body().writeTo(bufferedRequestBody);
         bufferedRequestBody.close();
       } else if (!connection.isMultiplexed()) {
@@ -78,6 +80,7 @@ public final class CallServerInterceptor implements Interceptor {
     httpCodec.finishRequest();
 
     if (responseBuilder == null) {
+      // 读取服务器headers 数据
       responseBuilder = httpCodec.readResponseHeaders(false);
     }
     Response response = responseBuilder
@@ -93,7 +96,7 @@ public final class CallServerInterceptor implements Interceptor {
       response = response.newBuilder()
           .body(Util.EMPTY_RESPONSE)
           .build();
-    } else {
+    } else {// 读取服务器body 数据
       response = response.newBuilder()
           .body(httpCodec.openResponseBody(response))
           .build();

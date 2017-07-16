@@ -577,6 +577,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void testReDirectUrl(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.testReDirectUrl();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
     public static Map<String,Integer> getAllLocalSimpleBaseAppsMap(Context context) {
         String selfPackageName = context.getPackageName();
         Map<String,Integer> params=null;

@@ -244,6 +244,7 @@ public final class Request {
     /**
      * Attaches {@code tag} to the request. It can be used later to cancel the request. If the tag
      * is unspecified or null, the request is canceled by using the request itself as the tag.
+     * 是一个请求的标识，可以在后续的过程中终止或取消这个请求
      */
     public Builder tag(Object tag) {
       this.tag = tag;

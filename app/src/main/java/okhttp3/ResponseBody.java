@@ -114,6 +114,7 @@ public abstract class ResponseBody implements Closeable {
   public abstract long contentLength();
 
   public final InputStream byteStream() {
+    // 解决读取大数据量的stream，内存一个buffer，每次读取一个buffer的大小，写入文件
     return source().inputStream();
   }
 
@@ -125,6 +126,7 @@ public abstract class ResponseBody implements Closeable {
    * <p>This method loads entire response body into memory. If the response body is very large this
    * may trigger an {@link OutOfMemoryError}. Prefer to stream the response body if this is a
    * possibility for your response.
+   * 将流内的数据一次性读取完毕，注意oom
    */
   public final byte[] bytes() throws IOException {
     long contentLength = contentLength();
