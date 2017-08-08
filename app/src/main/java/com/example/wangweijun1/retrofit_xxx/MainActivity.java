@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -583,6 +584,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     StoreService.testReDirectUrl();
+
+                    PowerManager p;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

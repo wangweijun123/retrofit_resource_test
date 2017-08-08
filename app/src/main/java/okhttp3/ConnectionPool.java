@@ -76,7 +76,9 @@ public final class ConnectionPool {
       }
     }
   };
-
+  /**
+   * 数组存储连接
+   */
   private final Deque<RealConnection> connections = new ArrayDeque<>();
   // 是一个黑名单，用来记录不可用的route
   final RouteDatabase routeDatabase = new RouteDatabase();

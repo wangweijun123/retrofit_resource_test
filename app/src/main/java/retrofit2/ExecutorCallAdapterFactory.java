@@ -38,12 +38,14 @@ final class ExecutorCallAdapterFactory extends CallAdapter.Factory {
       return null;
     }
     final Type responseType = Utils.getCallResponseType(returnType);
+    Log.i(Retrofit.TAG, "return new CallAdapter ()");
     return new CallAdapter<Object, Call<?>>() {
       @Override public Type responseType() {
         return responseType;
       }
 
       @Override public Call<Object> adapt(Call<Object> call) {
+        Log.i(Retrofit.TAG, "adapt call:"+call);
         return new ExecutorCallbackCall<>(callbackExecutor, call);
       }
     };

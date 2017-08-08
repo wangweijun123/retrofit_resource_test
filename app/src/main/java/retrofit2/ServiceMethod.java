@@ -159,7 +159,22 @@ final class ServiceMethod<R, T> {
       this.parameterAnnotationsArray = method.getParameterAnnotations();
     }
 
+    /**
+     * 1、获取对应的CallAdatper
+     2、获取对应的Converter
+     3、方法注解解析，给相应的ServiceMethod.Builder的字段赋值，从注解转化为对象。
+     4、内部检查，保证逻辑正确
+     5、方法参数注解解析，给相应的ServiceMethod.Builder的字段赋值，从注解转化为对象。
+     6、排除错误逻辑。(此时ServiceMethod.Builder的字段已经赋值完毕)
+     7、构造ServiceMethod对象并返回
+     作者：隔壁老李头
+     链接：http://www.jianshu.com/p/855fce462242
+     來源：简书
+     著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+     * @return
+     */
     public ServiceMethod build() {
+      // 找到合适的call adapter
       callAdapter = createCallAdapter();
       responseType = callAdapter.responseType();
       if (responseType == Response.class || responseType == okhttp3.Response.class) {
@@ -167,6 +182,7 @@ final class ServiceMethod<R, T> {
             + Utils.getRawType(responseType).getName()
             + "' is not a valid response body type. Did you mean ResponseBody?");
       }
+      // 找到合适的response converter
       responseConverter = createResponseConverter();
 
       for (Annotation annotation : methodAnnotations) {

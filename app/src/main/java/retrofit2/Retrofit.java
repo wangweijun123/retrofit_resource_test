@@ -129,6 +129,7 @@ public final class Retrofit {
   @SuppressWarnings("unchecked") // Single-interface proxy creation guarded by parameter safety.
   public <T> T create(final Class<T> service) {
     Utils.validateServiceInterface(service);
+    Log.i(Retrofit.TAG, this + "validateEagerly:"+validateEagerly);
     if (validateEagerly) {
       eagerlyValidateMethods(service);
     }
@@ -158,6 +159,7 @@ public final class Retrofit {
             ServiceMethod<Object, Object> serviceMethod =
                 (ServiceMethod<Object, Object>) loadServiceMethod(method);
             OkHttpCall<Object> okHttpCall = new OkHttpCall<>(serviceMethod, args);
+            Log.i(Retrofit.TAG, "serviceMethod.callAdapter.adapt okHttpCall:"+okHttpCall);
             return serviceMethod.callAdapter.adapt(okHttpCall);
           }
         });
@@ -227,6 +229,7 @@ public final class Retrofit {
    */
   public CallAdapter<?, ?> nextCallAdapter(CallAdapter.Factory skipPast, Type returnType,
       Annotation[] annotations) {
+    Log.i(Retrofit.TAG, "寻找合适的call adapter nextCallAdapter");
     checkNotNull(returnType, "returnType == null");
     checkNotNull(annotations, "annotations == null");
 
@@ -234,6 +237,7 @@ public final class Retrofit {
     for (int i = start, count = adapterFactories.size(); i < count; i++) {
       CallAdapter<?, ?> adapter = adapterFactories.get(i).get(returnType, annotations, this);
       if (adapter != null) {
+        Log.i(Retrofit.TAG, "count:"+count+", i:"+i + ",adapter:"+adapter);
         return adapter;
       }
     }
@@ -592,6 +596,7 @@ public final class Retrofit {
 
       Executor callbackExecutor = this.callbackExecutor;
       if (callbackExecutor == null) {
+        Log.i(Retrofit.TAG, "platform.defaultCallbackExecutor() ");
         callbackExecutor = platform.defaultCallbackExecutor();
       }
 
