@@ -133,6 +133,15 @@ public class StoreService {
         @Streaming
         @GET
         Call<ResponseBody> downloadFileWithDynamicUrlSync(@Url String fileUrl);
+
+
+
+        @GET("hyuser/test?sleeptime=1000")
+        Call<String> reUseConnection();
+
+
+        @POST("hyuser/install/list")
+        Call<String> reUseConnection2();
     }
 
 
@@ -788,6 +797,66 @@ public class StoreService {
         String str = resp.body();
         Log.i(Retrofit.TAG, "result is ok");
     }
+
+    /**
+     * 连接重用测试，当是http1.x协议时，一个连接上只能有一个stream，也就是如果
+     * 同一太服务器，当上一个api还没返回，下一个会重新建立一个连接，发送数据，当然
+     * 如果前一个请求回来了，重用连接,我担心的问题没了
+     */
+    public static void testReUseConnection() {
+        // http://10.127.92.182:8888/hyuser/test?sleeptime=10000"
+        // http://10.127.92.182:8888/hyuser/install/list
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://10.127.92.182:8888/")
+                .addConverterFactory(new ToStringConverterFactory())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        Call<String> call = service.reUseConnection();
+         call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                Log.i(Retrofit.TAG, "first request onResponse:"+response.body());
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.i(Retrofit.TAG, "first request onFailure");
+            }
+        });
+
+
+        try {
+            Log.i(Retrofit.TAG, "sleep 2000 ms");
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Log.i(Retrofit.TAG, "sleep finished");
+
+        Retrofit retrofit2 = new Retrofit.Builder()
+                .baseUrl("http://10.127.92.182:8888/")
+                .addConverterFactory(new ToStringConverterFactory())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
+                .build();
+        StoreApi service2 = retrofit2.create(StoreApi.class);
+        Call<String> call2 = service2.reUseConnection2();
+        call2.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                Log.i(Retrofit.TAG, "second request onResponse:"+response.body());
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.i(Retrofit.TAG, "second request onFailure");
+            }
+        });
+
+
+    }
+
+
 
 
 

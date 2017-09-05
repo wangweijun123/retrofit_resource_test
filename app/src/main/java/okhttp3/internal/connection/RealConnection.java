@@ -403,12 +403,16 @@ public final class RealConnection extends Http2Connection.Listener implements Co
    */
   public boolean isEligible(Address address, Route route) {
     // If this connection is not accepting new streams, we're done.
+    Log.i(Retrofit.TAG, "address:"+address+", route:"+route);
+    Log.i(Retrofit.TAG, "allocations.size():"+allocations.size()+", allocationLimit:"+allocationLimit+", noNewStreams:"+noNewStreams);
     if (allocations.size() >= allocationLimit || noNewStreams) return false;
 
     // If the non-host fields of the address don't overlap, we're done.
     if (!Internal.instance.equalsNonHost(this.route.address(), address)) return false;
 
     // If the host exactly matches, we're done: this connection can carry the address.
+    Log.i(Retrofit.TAG, "address.url().host().equals(this.route().address().url().host()) :"
+            +address.url().host().equals(this.route().address().url().host()));
     if (address.url().host().equals(this.route().address().url().host())) {
       return true; // This connection is a perfect match.
     }
@@ -419,17 +423,22 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     // https://daniel.haxx.se/blog/2016/08/18/http2-connection-coalescing/
 
     // 1. This connection must be HTTP/2.
+    Log.i(Retrofit.TAG, "http2Connection:"+http2Connection);
     if (http2Connection == null) return false;
 
     // 2. The routes must share an IP address. This requires us to have a DNS address for both
     // hosts, which only happens after route planning. We can't coalesce connections that use a
     // proxy, since proxies don't tell us the origin server's IP address.
+    Log.i(Retrofit.TAG, "route:"+route);
     if (route == null) return false;
+    Log.i(Retrofit.TAG, "rroute.proxy().type() != Proxy.Type.DIRECT :"+(route.proxy().type() != Proxy.Type.DIRECT));
     if (route.proxy().type() != Proxy.Type.DIRECT) return false;
     if (this.route.proxy().type() != Proxy.Type.DIRECT) return false;
     if (!this.route.socketAddress().equals(route.socketAddress())) return false;
 
     // 3. This connection's server certificate's must cover the new host.
+    Log.i(Retrofit.TAG, "route.address().hostnameVerifier():"+route.address().hostnameVerifier());
+    Log.i(Retrofit.TAG, "OkHostnameVerifier.INSTANCE:"+OkHostnameVerifier.INSTANCE);
     if (route.address().hostnameVerifier() != OkHostnameVerifier.INSTANCE) return false;
     if (!supportsUrl(address.url())) return false;
 

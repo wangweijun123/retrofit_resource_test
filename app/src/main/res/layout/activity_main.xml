@@ -260,6 +260,12 @@
             android:text="测试connection 2" />
 
         <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testReUseConnection"
+            android:text="重用连接" />
+
+        <Button
             android:id="@+id/button33"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

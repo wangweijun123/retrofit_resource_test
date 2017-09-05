@@ -579,6 +579,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void testReUseConnection(View v) {
+        StoreService.testReUseConnection();
+
+    }
+
+
     public void testReDirectUrl(View v) {
         new Thread(new Runnable() {
             @Override

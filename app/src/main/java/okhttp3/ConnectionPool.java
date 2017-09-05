@@ -91,7 +91,7 @@ public final class ConnectionPool {
    *
    */
   public ConnectionPool() {
-    this(1, 1, TimeUnit.MINUTES);
+    this(5, 5, TimeUnit.MINUTES);
   }
 
   public ConnectionPool(int maxIdleConnections, long keepAliveDuration, TimeUnit timeUnit) {
