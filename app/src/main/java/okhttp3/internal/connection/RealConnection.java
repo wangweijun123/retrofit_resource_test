@@ -455,7 +455,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     return true; // Success. The URL is supported.
   }
 
-  public HttpCodec newCodec(
+  public HttpCodec  newCodec(
       OkHttpClient client, StreamAllocation streamAllocation) throws SocketException {
     if (http2Connection != null) {
       return new Http2Codec(client, streamAllocation, http2Connection);
