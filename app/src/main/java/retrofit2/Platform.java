@@ -78,6 +78,7 @@ class Platform {
       private final Handler handler = new Handler(Looper.getMainLooper());
 
       @Override public void execute(Runnable r) {
+        Log.i(Retrofit.TAG, handler + " handler.post r");
         handler.post(r);
       }
     }
