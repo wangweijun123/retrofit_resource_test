@@ -1,0 +1,29 @@
+1, 一次请求前，添加连接之上的StreamAllocation的引用，请求完成，删除连接之上的StreamAllocation的引用
+(计数器，建立好连接后加1，返回结果后减1，标识为空闲)，但是不关闭连接,不关闭底层流(source,sink)放回连接池
+
+2, 下次重用的key是Address实体中的属性host,当然连接池中的connection正在使用(是指allocationLimit=1)
+   或者链接已经不能用(是指noNewStreams=true)是再也不能重用的，等待时机remove
+
+3, 同一个时刻对同一个域名的访问并发，这时候连接池是没有缓存的链接
+
+4, 连接初始化在ConnectionInterceptor中, 实例化Realconnection后，立马在连接上添加stream，
+标识连接正在使用(注意并非真正与服务器建立了连接，真正建立连接调用socket.connection(address)之后),
+并且放入连接池中
+
+5, 连接池(add, remove, cleanup)
+ConnectionPool {
+
+    Deque<RealConnection> deque;
+}
+
+第一，连接池与OkHttpClient实例保持一致，是它的属性，
+第二，这个属性deque一致处于多线程环境中，所以锁住类对象
+第三，还有两个属性，一个是只有一个线程的线程池，这个线程只能空闲一分钟
+另一个是 runnable，执行cleanup清理连接池中的僵尸连接
+
+
+okhttp {
+1, 连接
+2, cache
+3, http, https, h2, spdy
+}

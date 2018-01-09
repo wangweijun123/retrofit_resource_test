@@ -106,7 +106,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
-    Log.i(Retrofit.TAG, this + " intercept start ...");
+    Log.i(Retrofit.TAG, this + " intercept start ...new StreamAllocation()");
     Request request = chain.request();
     streamAllocation = new StreamAllocation(
         client.connectionPool(), createAddress(request.url()), callStackTrace);
@@ -114,7 +114,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
     int followUpCount = 0;
     Response priorResponse = null;
     while (true) {
-      Log.i(Retrofit.TAG, this + " chain proceed request canceled:"+canceled);
+      Log.i(Retrofit.TAG, this + "RetryAndFollow  canceled:"+canceled);
       if (canceled) {
         streamAllocation.release();
         throw new IOException("Canceled");
@@ -145,14 +145,15 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
         continue;
       } finally {
         // We're throwing an unchecked exception. Release any resources.
+        Log.i(Retrofit.TAG, "finally releaseConnection :"+ releaseConnection);
         if (releaseConnection) {
           streamAllocation.streamFailed(null);
           streamAllocation.release();
         }
-        Log.i(Retrofit.TAG, this + " intercept finally ...");
       }
 
       // Attach the prior response if it exists. Such responses never have a body.
+      Log.i(Retrofit.TAG, "priorResponse:"+priorResponse);
       if (priorResponse != null) {
         response = response.newBuilder()
             .priorResponse(priorResponse.newBuilder()
@@ -162,12 +163,12 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
       }
 
       Request followUp = followUpRequest(response);
-
+      Log.i(Retrofit.TAG, "followUp:"+followUp + ", forWebSocket:"+forWebSocket + ", forWebSocket:"+forWebSocket);
       if (followUp == null) {
         if (!forWebSocket) {
           streamAllocation.release();
         }
-        Log.i(Retrofit.TAG, this + "followUp == null intercept end ...");
+        Log.i(Retrofit.TAG, this + " intercept end");
         return response;
       }
 
@@ -197,7 +198,6 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
 
       request = followUp;
       priorResponse = response;
-      Log.i(Retrofit.TAG, this + " intercept end");
     }
   }
 
@@ -279,6 +279,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
    * follow-up is either unnecessary or not applicable, this returns null.
    */
   private Request followUpRequest(Response userResponse) throws IOException {
+    Log.i(Retrofit.TAG, "followUpRequest userResponse:"+userResponse);
     if (userResponse == null) throw new IllegalStateException();
     Connection connection = streamAllocation.connection();
     Route route = connection != null

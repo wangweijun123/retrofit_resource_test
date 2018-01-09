@@ -54,12 +54,13 @@ public final class ConnectionPool {
       new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp ConnectionPool", true));
 
   /** The maximum number of idle connections for each address. */
-  /** 初始化5个连接 */
+  /** 每个地址最多5个连接, 所以OkHttp只是限制与同一个远程服务器的空闲连接数量，对整体的空闲连接并没有限制 */
   private final int maxIdleConnections;
   /** 初始化每个连接活着的时间5分钟 */
   private final long keepAliveDurationNs;
   private final Runnable cleanupRunnable = new Runnable() {
     @Override public void run() {
+      Log.i(Retrofit.TAG,"connection cleanup start run ...");
       while (true) {
         long waitNanos = cleanup(System.nanoTime());
         if (waitNanos == -1) return;
@@ -80,7 +81,7 @@ public final class ConnectionPool {
    * 数组存储连接
    */
   private final Deque<RealConnection> connections = new ArrayDeque<>();
-  // 是一个黑名单，用来记录不可用的route
+  // 是一个黑名单，黑名单用来记录不可用的route
   final RouteDatabase routeDatabase = new RouteDatabase();
   boolean cleanupRunning;
 
@@ -88,7 +89,9 @@ public final class ConnectionPool {
    * Create a new connection pool with tuning parameters appropriate for a single-user application.
    * The tuning parameters in this pool are subject to change in future OkHttp releases. Currently
    * this pool holds up to 5 idle connections which will be evicted after 5 minutes of inactivity.
-   *
+   *创建一个适用于单个应用程序的新连接池。
+   * 该连接池的参数将在未来的okhttp中发生改变
+   目前最多可容乃5个空闲的连接，存活期是5分钟
    */
   public ConnectionPool() {
     this(5, 5, TimeUnit.MINUTES);
@@ -129,6 +132,7 @@ public final class ConnectionPool {
    */
   RealConnection get(Address address, StreamAllocation streamAllocation, Route route) {
     assert (Thread.holdsLock(this));
+    Log.i(Retrofit.TAG, "connections size:"+connections.size());
     for (RealConnection connection : connections) {
       if (connection.isEligible(address, route)) {
         streamAllocation.acquire(connection);
@@ -158,10 +162,11 @@ public final class ConnectionPool {
     assert (Thread.holdsLock(this));
     if (!cleanupRunning) {
       cleanupRunning = true;
+      Log.i(Retrofit.TAG,"启动连接清理线程");
       executor.execute(cleanupRunnable);
     }
     connections.add(connection);
-    Log.i(Retrofit.TAG,"connections size:"+connections.size());
+    Log.i(Retrofit.TAG,"put into pool connections size:"+connections.size());
   }
 
   /**
@@ -317,4 +322,6 @@ public final class ConnectionPool {
 
     return references.size();
   }
+
+
 }

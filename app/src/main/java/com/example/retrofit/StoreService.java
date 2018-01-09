@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.JsonObject;
-import com.google.gson.annotations.JsonAdapter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,14 +15,10 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-import okhttp3.Cache;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-import retrofit2.BuiltInConverters;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Converter;
@@ -78,6 +73,7 @@ public class StoreService {
         // // http://123.125.91.30/api34/mapi/coop/business
         @GET("api34/mapi/coop/business")
         Call<MyCache> doTestCacheInterceptor();
+
 
         @GET("helloworld.txt")
         Call<String> doTestHttpsCacheInterceptor();
@@ -166,7 +162,7 @@ public class StoreService {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(OkHttpUtils.getInstance().getCacheOkHttpClient())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
         // pagefrom=1&pagesize=1&code=RANK_HOT";
@@ -200,38 +196,36 @@ public class StoreService {
      * @throws IOException
      */
     public static void doGetAsync() throws IOException {
-        //
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(URL_BASIC_SERVICE_TEST)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        Log.i(Retrofit.TAG, "StoreService create service");
-        // 使用retrofit创建一个api接口对象(retrofit newProxyInstance)
-        StoreApi service = retrofit.create(StoreApi.class);
-        Log.i(Retrofit.TAG, "StoreService service doGet");
-        // pagefrom=1&pagesize=1&code=RANK_HOT";
-        // retrofit (代理对象调用doget方法，返回ExecutorCallbackCall(其实就是OkhttpCall对象)))
-        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
-        Log.i(Retrofit.TAG, "StoreService call:"+call);
+        int count = 5;
+        for (int i=0; i<count; i++) {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(URL_BASIC_SERVICE_TEST)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(OkHttpUtils.getInstance().getOkHttpClient())
+                    .build();
+            StoreApi service = retrofit.create(StoreApi.class);
+            // pagefrom=1&pagesize=1&code=RANK_HOT";
+            // retrofit (代理对象调用doget方法，返回ExecutorCallbackCall(其实就是OkhttpCall对象)))
+            Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+            Callback<MyResp> callback = new Callback<MyResp>() {
+                @Override
+                public void onResponse(Call<MyResp> call, Response<MyResp> response) {
+                    MyResp list = response.body();
+                    Log.i(Retrofit.TAG, response.headers().toString());
+                    Log.i(Retrofit.TAG,  response.code()+", "+response.message());
+                }
 
-        Callback<MyResp> callback = new Callback<MyResp>() {
-            @Override
-            public void onResponse(Call<MyResp> call, Response<MyResp> response) {
-                MyResp list = response.body();
-                Log.i(Retrofit.TAG, response.headers().toString());
-                Log.i(Retrofit.TAG,  response.code()+", "+response.message());
-            }
-
-            @Override
-            public void onFailure(Call<MyResp> call, Throwable t) {
-                t.printStackTrace();
-                Log.i(Retrofit.TAG, "onFailure status");
-            }
-        };
-
-        Log.i(Retrofit.TAG, "id callback:"+callback);
-        call.enqueue(callback);
+                @Override
+                public void onFailure(Call<MyResp> call, Throwable t) {
+                    t.printStackTrace();
+                    Log.i(Retrofit.TAG, "onFailure status");
+                }
+            };
+            call.enqueue(callback);
+        }
     }
+
+
    static int cacheSize = 10 * 1024 * 1024; // 10 MiB
 // /storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache
 
@@ -241,19 +235,17 @@ public class StoreService {
      * @throws IOException
      */
     public static void testCacheInterceptor(Context context) throws IOException {
-        File cacheDir = context.getExternalCacheDir();
-        Log.i(Retrofit.TAG, "cacheDir : "+cacheDir.getAbsoluteFile());
-        //  http://123.125.91.30/api34/mapi/coop/business
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://123.125.91.30/")
+                .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(OkHttpUtils.getInstance().getCacheOkHttpClient())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
-        Call<MyCache> call = service.doTestCacheInterceptor();
-        Response<MyCache> resp = call.execute();
-        MyCache list = resp.body();
-        Log.i(Retrofit.TAG, "list entity:"+list.entity);
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Response<MyResp> resp = call.execute();
+        MyResp list = resp.body();
+        Log.i(Retrofit.TAG, "list status:"+list.status);
     }
 
 

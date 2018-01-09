@@ -8,11 +8,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import okhttp3.*;
+import okhttp3.Cache;
+import okhttp3.Dns;
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * Created by wangweijun1 on 2017/5/23.
@@ -34,18 +37,14 @@ public class OkHttpUtils {
 
     private OkHttpUtils() {
 
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         mOkHttpClient = new OkHttpClient.Builder()
-                .addNetworkInterceptor(httpLoggingInterceptor)
                 .build();
 
 
         /** DNS http client */
         mDnsOkHttpClient = new OkHttpClient.Builder()
                 .dns(HTTP_DNS)
-                .addNetworkInterceptor(httpLoggingInterceptor)
                 .addNetworkInterceptor(new Interceptor() {
                     @Override
                     public Response intercept(Chain chain) throws IOException {

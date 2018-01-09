@@ -102,14 +102,17 @@ public final class StreamAllocation {
    * @return
    */
   public HttpCodec newStream(OkHttpClient client, boolean doExtensiveHealthChecks) {
+    Log.i(Retrofit.TAG, "newStream ...");
     int connectTimeout = client.connectTimeoutMillis();
     int readTimeout = client.readTimeoutMillis();
     int writeTimeout = client.writeTimeoutMillis();
     boolean connectionRetryEnabled = client.retryOnConnectionFailure();
 
     try {
+      // 要想产生流，必须找到connection
       RealConnection resultConnection = findHealthyConnection(connectTimeout, readTimeout,
           writeTimeout, connectionRetryEnabled, doExtensiveHealthChecks);
+      // RealConnection 对象重用，里面的source与sink还是同一个对象，虽然，Htttp1Codec对象重新new了一个，里面最底层的流strem不变
       HttpCodec resultCodec = resultConnection.newCodec(client, this);
       Log.i(Retrofit.TAG, "####resultCodec:"+resultCodec);
       synchronized (connectionPool) {
@@ -128,7 +131,9 @@ public final class StreamAllocation {
   private RealConnection findHealthyConnection(int connectTimeout, int readTimeout,
       int writeTimeout, boolean connectionRetryEnabled, boolean doExtensiveHealthChecks)
       throws IOException {
+    Log.i(Retrofit.TAG, "findHealthyConnection ...");
     while (true) {
+      Log.i(Retrofit.TAG, "死循环寻找...");
       RealConnection candidate = findConnection(connectTimeout, readTimeout, writeTimeout,
           connectionRetryEnabled);
 
@@ -157,8 +162,7 @@ public final class StreamAllocation {
   private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,
       boolean connectionRetryEnabled) throws IOException {
     Route selectedRoute;
-    Log.i(Retrofit.TAG,this +
-            " findConnection : released:"+released+", codec:"+codec+", canceled:" +canceled);
+    Log.i(Retrofit.TAG," findConnection : released:"+released+", codec:"+codec+", canceled:" +canceled);
     synchronized (connectionPool) {
       if (released) throw new IllegalStateException("released");
       if (codec != null) throw new IllegalStateException("codec != null");
@@ -166,17 +170,20 @@ public final class StreamAllocation {
 
       // Attempt to use an already-allocated connection.
       RealConnection allocatedConnection = this.connection;
-      Log.i(Retrofit.TAG," allocatedConnection :"
-              + allocatedConnection);
+      Log.i(Retrofit.TAG," allocatedConnection :" + allocatedConnection);
+      if (allocatedConnection != null) {
+        Log.i(Retrofit.TAG," allocatedConnection.noNewStreams :"
+                + allocatedConnection.noNewStreams);
+      }
       if (allocatedConnection != null && !allocatedConnection.noNewStreams) {
-        Log.i(Retrofit.TAG,"return  allocatedConnection :");
+        Log.i(Retrofit.TAG," return "+allocatedConnection);
         return allocatedConnection;
       }
 
       // Attempt to get a connection from the pool.
-      Log.i(Retrofit.TAG," Attempt to get a connection from the pool ");
+      Log.i(Retrofit.TAG," Attempt to get a connection from the pool(其实代码不用这样写，从调用connectionPool.get())");
       Internal.instance.get(connectionPool, address, this, null);
-      Log.i(Retrofit.TAG," connection :" + connection);
+      Log.i(Retrofit.TAG,"result connection :" + connection);
       if (connection != null) {
         Log.i(Retrofit.TAG,"从连接池中获取到了连接");
         return connection;
@@ -187,8 +194,9 @@ public final class StreamAllocation {
     Log.i(Retrofit.TAG,"连接池中没有该地址的连接，需要创建新连接");
     // If we need a route, make one. This is a blocking operation.
     Log.i(Retrofit.TAG,"If we need a route, make one. This is a blocking operation");
-    Log.i(Retrofit.TAG, "selectedRoute == null ? " +(selectedRoute == null));
+    Log.i(Retrofit.TAG, "selectedRoute : " + selectedRoute);
     if (selectedRoute == null) {
+      Log.i(Retrofit.TAG, "使用下一个路由 ");
       selectedRoute = routeSelector.next();
     }
 
@@ -198,9 +206,11 @@ public final class StreamAllocation {
 
       // Now that we have an IP address, make another attempt at getting a connection from the pool.
       // This could match due to connection coalescing.
-      Internal.instance.get(connectionPool, address, this, selectedRoute);
+
       Log.i(Retrofit.TAG, "now that we have an IP address, make another attempt at getting a connection from the pool. ");
-      Log.i(Retrofit.TAG,"connection:"+connection);
+      Internal.instance.get(connectionPool, address, this, selectedRoute);
+
+      Log.i(Retrofit.TAG,"again get from the pool result connection:"+connection);
       if (connection != null) return connection;
 
       // Create a connection and assign it to this allocation immediately. This makes it possible
@@ -208,7 +218,7 @@ public final class StreamAllocation {
       route = selectedRoute;
       refusedStreamCount = 0;
       result = new RealConnection(connectionPool, selectedRoute);
-      Log.i(Retrofit.TAG, "创建新连接同时在连接上增加allocations StreamAllocationReference");
+      Log.i(Retrofit.TAG, "创建新连接new RealConnection, 但是还不是真正的与服务器建立连接");
       acquire(result);
     }
     Log.i(Retrofit.TAG,"Do TCP + TLS handshakes. This is a blocking operation");
@@ -219,7 +229,8 @@ public final class StreamAllocation {
     Socket socket = null;
     synchronized (connectionPool) {
       // Pool the connection.
-      Log.i(Retrofit.TAG,"put the connection : "+result);
+      // RealConnection创建并往链接加入stream(此时并非真正与服务器建立了链接)引用后放进链接池，标识链接正在
+      Log.i(Retrofit.TAG," put the connection : "+result + " into connection pool");
       Internal.instance.put(connectionPool, result);
 
       // If another multiplexed connection to the same address was created concurrently, then
@@ -264,11 +275,12 @@ public final class StreamAllocation {
   }
 
   public void release() {
-    Log.i(Retrofit.TAG, "release....");
+    Log.i(Retrofit.TAG, "may be release....");
     Socket socket;
     synchronized (connectionPool) {
       socket = deallocate(false, true, false);
     }
+    Log.i(Retrofit.TAG, "socket : "+ socket);
     closeQuietly(socket);
   }
 
@@ -299,6 +311,7 @@ public final class StreamAllocation {
       this.released = true;
     }
     Socket socket = null;
+    Log.i(Retrofit.TAG, "connection:"+connection + ", noNewStreams:"+noNewStreams+", codec:"+codec);
     if (connection != null) {
       if (noNewStreams) {
         connection.noNewStreams = true;

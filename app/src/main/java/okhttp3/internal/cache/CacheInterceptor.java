@@ -160,6 +160,7 @@ public final class CacheInterceptor implements Interceptor {
 
   private CacheRequest maybeCache(Response userResponse, Request networkRequest,
                                   InternalCache responseCache) throws IOException {
+    Log.i(Retrofit.TAG, "responseCache : " + responseCache);
     if (responseCache == null) return null;
 
     // Should we cache this response for this request?

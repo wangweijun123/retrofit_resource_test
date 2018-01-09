@@ -39,14 +39,14 @@ import retrofit2.Retrofit;
  * of calls concurrently.
  */
 public final class Dispatcher {
-  private int maxRequests = 64;
+  private int maxRequests = 64;//
   private int maxRequestsPerHost = 5;
   private Runnable idleCallback;
 
   /** Executes calls. Created lazily. */
   private ExecutorService executorService;
 
-  /** 准备异步请求的队列，当正在运行的请求数量大于最大请求数量，先把它放到准备请求队列中暂存，
+  /** 异步请求的缓存队列，当正在运行的请求数量大于最大请求数量，先把它放到准备请求队列中暂存，
    * 当某一个请求完成后，从准备请求队列中取出添加到runningsAysnCalls，立马执行请求 */
   /** Ready async calls in the order they'll be run. */
 
@@ -70,6 +70,7 @@ public final class Dispatcher {
     if (executorService == null) {
       synchronized (Dispatcher.this) {
         if (executorService == null) {
+          // 执行任务的线程数量无限大，当然，空闲时间只有一分中
           executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
                   new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp Dispatcher", false));
         }
@@ -136,10 +137,14 @@ public final class Dispatcher {
   }
 
   synchronized void enqueue(AsyncCall call) {
+    Log.i(Retrofit.TAG, "runningAsyncCalls.size()=="+(runningAsyncCalls.size())+", maxRequests:"+maxRequests +
+            ", runningCallsForHost(call)="+(runningCallsForHost(call))+", maxRequestsPerHost:"+maxRequestsPerHost);
     if (runningAsyncCalls.size() < maxRequests && runningCallsForHost(call) < maxRequestsPerHost) {
+      Log.i(Retrofit.TAG, "异步的call满足条件(正在执行的call不超过64的默认值，同一个host的call不能超过5个)，直接添加到runningAsyncCalls双端队列，线程池立马执行它");
       runningAsyncCalls.add(call);
       executorService().execute(call);
     } else {
+      Log.i(Retrofit.TAG, "不满足条件，进入缓存异步调用队列readyAsyncCalls");
       readyAsyncCalls.add(call);
     }
   }
@@ -209,7 +214,7 @@ public final class Dispatcher {
     Runnable idleCallback;
     synchronized (this) {
       if (!calls.remove(call)) throw new AssertionError("Call wasn't in-flight!");
-      Log.i(Retrofit.TAG, "Dispatcher finished calls.remove(call) size:"+calls.size());
+      Log.i(Retrofit.TAG,"promoteCalls:"+promoteCalls+ "  从Dispatcher双端队列中remove call from calls and calls size:"+calls.size()+", 所以realcall其实只是一个应用而已");
       if (promoteCalls) promoteCalls();
       runningCallsCount = runningCallsCount();
       idleCallback = this.idleCallback;

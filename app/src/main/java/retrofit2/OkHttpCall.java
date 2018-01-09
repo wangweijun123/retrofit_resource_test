@@ -191,7 +191,7 @@ final class OkHttpCall<T> implements Call<T> {
     Request request = serviceMethod.toRequest(args);
     // callFactory is class OkHttpClient
     okhttp3.Call call = serviceMethod.callFactory.newCall(request);
-    Log.i(Retrofit.TAG, this + " createRawCall  call:"+call);
+    Log.i(Retrofit.TAG, this + " createRawCall call:"+call);
     if (call == null) {
       throw new NullPointerException("Call.Factory returned null.");
     }

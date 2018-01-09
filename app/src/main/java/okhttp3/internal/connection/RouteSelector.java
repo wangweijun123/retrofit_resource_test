@@ -171,10 +171,11 @@ public final class RouteSelector {
       inetSocketAddresses.add(InetSocketAddress.createUnresolved(socketHost, socketPort));
     } else {
       // Try each address for best behavior in mixed IPv4/IPv6 environments.
+      Log.i(Retrofit.TAG, "lookup socketHost:"+socketHost + " for addresses");
       List<InetAddress> addresses = address.dns().lookup(socketHost);
       for (int i = 0, size = addresses.size(); i < size; i++) {
         InetAddress inetAddress = addresses.get(i);
-        Log.i(Retrofit.TAG, "inetAddress.getHostAddress() : " + inetAddress.getHostAddress() + ", socketPort:"+socketPort);
+        Log.i(Retrofit.TAG, "hostAddress() : " + inetAddress.getHostAddress() + ", socketPort:"+socketPort);
         inetSocketAddresses.add(new InetSocketAddress(inetAddress, socketPort));
       }
     }

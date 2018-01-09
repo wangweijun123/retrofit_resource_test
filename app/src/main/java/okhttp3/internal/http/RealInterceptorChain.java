@@ -32,12 +32,14 @@ import retrofit2.Retrofit;
  * interceptors, the OkHttp core, all network interceptors, and finally the network caller.
  */
 public final class RealInterceptorChain implements Interceptor.Chain {
-  private final List<Interceptor> interceptors;
-  private final StreamAllocation streamAllocation;
+  private final List<Interceptor> interceptors;// 一开始就有值
+  private final Request request;// 一开始就有值
+
+  // 如下属性后拦截器来实例化的
+  private final StreamAllocation streamAllocation;// 由RetryAndFollowUpInterceptor生成
   private final HttpCodec httpCodec;
   private final RealConnection connection;
   private final int index;
-  private final Request request;
   private int calls;
 
   public RealInterceptorChain(List<Interceptor> interceptors, StreamAllocation streamAllocation,
@@ -72,17 +74,18 @@ public final class RealInterceptorChain implements Interceptor.Chain {
 
   public Response proceed(Request request, StreamAllocation streamAllocation, HttpCodec httpCodec,
       RealConnection connection) throws IOException {
-    Log.i(Retrofit.TAG, this + " proceed request:"+request+", streamAllocation:"+streamAllocation
+    Log.i(Retrofit.TAG,"RealInterceptorChain proceed request:"+request+", streamAllocation:"+streamAllocation
     +", httpCodec:"+httpCodec+", connection:"+connection);
     Log.i(Retrofit.TAG, "index:"+index+ ", interceptors.size():"+interceptors.size());
     if (index >= interceptors.size()) throw new AssertionError();
 
     calls++;
-    Log.i(Retrofit.TAG, "calls:" + calls + ", this.httpCodec != null : "+(this.httpCodec != null));
+    Log.i(Retrofit.TAG, "calls:" + calls);
+    if (this.connection != null) {
+      Log.i(Retrofit.TAG, "supportsUrl ? " + (this.connection.supportsUrl(request.url())));
+    }
     // If we already have a stream, confirm that the incoming request will use it.
     if (this.httpCodec != null && !this.connection.supportsUrl(request.url())) {
-      Log.i(Retrofit.TAG, "this.httpCodec != null && !this.connection.supportsUrl(request.url()):"+
-              (this.httpCodec != null && !this.connection.supportsUrl(request.url())));
       throw new IllegalStateException("network interceptor " + interceptors.get(index - 1)
           + " must retain the same host and port");
     }

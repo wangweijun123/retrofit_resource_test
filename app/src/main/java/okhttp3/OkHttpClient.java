@@ -129,6 +129,9 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT);
 
   static {
+    /**
+     * 这样的写法值得商量，本来就可以在相应的地方调用
+     */
     Internal.instance = new Internal() {
       @Override public void addLenient(Headers.Builder builder, String line) {
         builder.addLenient(line);
@@ -333,6 +336,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
   }
 
   InternalCache internalCache() {
+    Log.i(Retrofit.TAG, " cache :" +cache + ", internalCache:"+internalCache);
     return cache != null ? cache.internalCache : internalCache;
   }
 

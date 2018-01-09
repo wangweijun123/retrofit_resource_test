@@ -59,7 +59,7 @@ import static retrofit2.Utils.checkNotNull;
  * @author Jake Wharton (jw@squareup.com)
  */
 public final class Retrofit {
-    public static final String TAG = "wang";
+    public static final String TAG = "Okhttp";
   private final Map<Method, ServiceMethod<?, ?>> serviceMethodCache = new ConcurrentHashMap<>();
 
   final okhttp3.Call.Factory callFactory;
@@ -159,7 +159,7 @@ public final class Retrofit {
             ServiceMethod<Object, Object> serviceMethod =
                 (ServiceMethod<Object, Object>) loadServiceMethod(method);
             OkHttpCall<Object> okHttpCall = new OkHttpCall<>(serviceMethod, args);
-            Log.i(Retrofit.TAG, "serviceMethod.callAdapter.adapt okHttpCall:"+okHttpCall);
+            Log.i(Retrofit.TAG, "serviceMethod.callAdapter.adapt okHttpCall:"+okHttpCall + ", callAdapter:"+serviceMethod.callAdapter);
             return serviceMethod.callAdapter.adapt(okHttpCall);
           }
         });

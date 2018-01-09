@@ -147,7 +147,6 @@ public final class HttpLoggingInterceptor implements Interceptor {
     Request request = chain.request();
     if (level == Level.NONE) {
       Response response = chain.proceed(request);
-      Log.i(Retrofit.TAG, this + " intercept end");
       return response;
     }
 

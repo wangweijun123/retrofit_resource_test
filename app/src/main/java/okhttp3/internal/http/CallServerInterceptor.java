@@ -40,19 +40,23 @@ public final class CallServerInterceptor implements Interceptor {
 
   @Override public Response intercept(Chain chain) throws IOException {
     Log.i(Retrofit.TAG, this + " intercept start ...");
+    // 所有的东西都已经准备
     RealInterceptorChain realChain = (RealInterceptorChain) chain;
+    // 在ConnectionInterceptor实例化HttpCodec
     HttpCodec httpCodec = realChain.httpStream();
+    // 在RetryAndFollowupinterceptor实例化StreamAllocation
     StreamAllocation streamAllocation = realChain.streamAllocation();
+    // 在ConnectionInterceptor实例化HttpCodec
     RealConnection connection = (RealConnection) realChain.connection();
+
     Request request = realChain.request();
 
     long sentRequestMillis = System.currentTimeMillis();
     // 向服务器发送header数据
     httpCodec.writeRequestHeaders(request);
-
+    Log.i(Retrofit.TAG,"writeRequestHeaders httpCodec:"+httpCodec + ", connection:"+connection);
     Response.Builder responseBuilder = null;
-    Log.i(Retrofit.TAG,"request.method():"+request.method() + ", request.body() != null :"+(request.body() != null));
-    Log.i(Retrofit.TAG, "HttpMethod.permitsRequestBody(request.method() :"+(HttpMethod.permitsRequestBody(request.method())));
+    Log.i(Retrofit.TAG,"method :"+request.method() + ", body :"+request.body()+", permitsRequestBody ? "+(HttpMethod.permitsRequestBody(request.method())));
     if (HttpMethod.permitsRequestBody(request.method()) && request.body() != null) {
       // If there's a "Expect: 100-continue" header on the request, wait for a "HTTP/1.1 100
       // Continue" response before transmitting the request body. If we don't get that, return what

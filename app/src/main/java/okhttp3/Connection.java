@@ -46,7 +46,12 @@ import java.net.Socket;
  * options and then retried without them should the attempt fail.
  *
  * <h3>Connection Reuse</h3>
- *
+ *  http2 : 一个连接可以承载多个流(同时可以多个请求), http1.x 同时只能是一个或者0个流
+ *  每个连接可以携带不同数量的流，这取决于所使用的底层协议。
+ *  HTTP / 1.x连接可以携带零个或一个流。
+ *  HTTP / 2连接可以携带任意数量的流，使用{@code SETTINGS_MAX_CONCURRENT_STREAMS}动态配置。
+ *  目前携带零流的连接是空闲流。 我
+ *  们保持活着，因为重用现有的连接通常比建立新的连接更快
  * <p>Each connection can carry a varying number streams, depending on the underlying protocol being
  * used. HTTP/1.x connections can carry either zero or one streams. HTTP/2 connections can carry any
  * number of streams, dynamically configured with {@code SETTINGS_MAX_CONCURRENT_STREAMS}. A
@@ -68,6 +73,7 @@ import java.net.Socket;
  * has been found. But only complete the stream once its data stream has been exhausted.
  *
  * 作用服务器建立连接
+ * okhttp的复用连接
  */
 public interface Connection {
   /** Returns the route used by this connection. */

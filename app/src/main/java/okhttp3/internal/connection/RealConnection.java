@@ -95,7 +95,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   // The fields below track connection state and are guarded by connectionPool.
 
   /** If true, no new streams can be created on this connection. Once true this is always true. */
-  /**  标识该连接已经不可用,true 为该连接空闲*/
+  /**  noNewStream可以简单理解为它表示该连接不可用。这个值一旦被设为true,则这个conncetion则不会再创建stream。*/
   public boolean noNewStreams;
 
   public int successCount;
@@ -153,11 +153,14 @@ public final class RealConnection extends Http2Connection.Listener implements Co
 
     while (true) {
       try {
-        if (route.requiresTunnel()) {
+        boolean istunnel = route.requiresTunnel();
+        Log.i(Retrofit.TAG, "是隧道吗 istunnel : "+ istunnel);
+        if (istunnel) {
           connectTunnel(connectTimeout, readTimeout, writeTimeout);
         } else {
           connectSocket(connectTimeout, readTimeout);
         }
+        Log.i(Retrofit.TAG,"socket 连接建立后，确定传输协议");
         establishProtocol(connectionSpecSelector);
         break;// 不抛异常就终止循环了
       } catch (IOException e) {
@@ -223,11 +226,12 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   private void connectSocket(int connectTimeout, int readTimeout) throws IOException {
     Proxy proxy = route.proxy();
     Address address = route.address();
-
-    rawSocket = proxy.type() == Proxy.Type.DIRECT || proxy.type() == Proxy.Type.HTTP
+    boolean proxytype = (proxy.type() == Proxy.Type.DIRECT || proxy.type() == Proxy.Type.HTTP);
+    Log.i(Retrofit.TAG,"proxytype is direct or http ? : "+proxytype + " address.socketFactory() : "+address.socketFactory());
+    rawSocket = proxytype
         ? address.socketFactory().createSocket()
         : new Socket(proxy);
-
+    Log.i(Retrofit.TAG, "rawSocket:"+rawSocket.hashCode());
     rawSocket.setSoTimeout(readTimeout);
     try {
       //内部就是调用socket.connect(InetAddress, timeout)方法建立连接
@@ -237,18 +241,17 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       ce.initCause(e);
       throw ce;
     }
+    Log.i(Retrofit.TAG, "建立连接后，通过socket获取输入输出流，实例化source and sink,注意source 与sink是Realconnection 属性，其他都是传过去的");
     source = Okio.buffer(Okio.source(rawSocket));
     sink = Okio.buffer(Okio.sink(rawSocket));
   }
 
   private void establishProtocol(ConnectionSpecSelector connectionSpecSelector) throws IOException {
-    Log.i(Retrofit.TAG,"establishProtocol route.address().sslSocketFactory() == null?"+
+    Log.i(Retrofit.TAG,"establishProtocol socketFactory : "+
             (route.address().sslSocketFactory() == null));
     if (route.address().sslSocketFactory() == null) {
       protocol = Protocol.HTTP_1_1;
-      Log.i(Retrofit.TAG,"" +
-              "" +
-              "socket is rawSocket");
+      Log.i(Retrofit.TAG, "protocol http1.1 socket is rawSocket");
       socket = rawSocket;
       return;
     }
@@ -405,15 +408,18 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     // If this connection is not accepting new streams, we're done.
     Log.i(Retrofit.TAG, "address:"+address+", route:"+route);
     Log.i(Retrofit.TAG, "allocations.size():"+allocations.size()+", allocationLimit:"+allocationLimit+", noNewStreams:"+noNewStreams);
+    // 如果连接正在使用或者链接已经不能使用，不能重用
     if (allocations.size() >= allocationLimit || noNewStreams) return false;
 
     // If the non-host fields of the address don't overlap, we're done.
     if (!Internal.instance.equalsNonHost(this.route.address(), address)) return false;
 
     // If the host exactly matches, we're done: this connection can carry the address.
-    Log.i(Retrofit.TAG, "address.url().host().equals(this.route().address().url().host()) :"
-            +address.url().host().equals(this.route().address().url().host()));
-    if (address.url().host().equals(this.route().address().url().host())) {
+    String newAddressUrl = address.url().host();
+    String inConnectionPoolAddressUrl = this.route().address().url().host();
+    Log.i(Retrofit.TAG, "newAddressUrl:"+newAddressUrl+", inConnectionPoolAddressUrl:"+inConnectionPoolAddressUrl + ", is same ? "+ (newAddressUrl.equals(inConnectionPoolAddressUrl)));
+
+    if (address.url().host().equals(this.route().address().url().host())) {// 对比的是host
       return true; // This connection is a perfect match.
     }
 
@@ -474,7 +480,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       socket.setSoTimeout(client.readTimeoutMillis());
       source.timeout().timeout(client.readTimeoutMillis(), MILLISECONDS);
       sink.timeout().timeout(client.writeTimeoutMillis(), MILLISECONDS);
-      Log.i(Retrofit.TAG, "####socket:"+socket+", source:"+source+", sink:"+sink);
+      Log.i(Retrofit.TAG, "创建Http1Codec对象使用 Realconnection中属性 socket:"+socket+", source:"+source+", sink:"+sink);
       return new Http1Codec(client, streamAllocation, source, sink);
     }
   }

@@ -43,7 +43,7 @@ import static okhttp3.internal.Util.hostHeader;
  * response.
  */
 public final class BridgeInterceptor implements Interceptor {
-  private final CookieJar cookieJar;
+  private final CookieJar cookieJar;// 由OkhttpClient赋值
 
   public BridgeInterceptor(CookieJar cookieJar) {
     this.cookieJar = cookieJar;

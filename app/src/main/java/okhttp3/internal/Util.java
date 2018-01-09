@@ -119,6 +119,7 @@ public final class Util {
    * null.
    */
   public static void closeQuietly(Socket socket) {
+    Log.i(Retrofit.TAG,"closeQuietly socket:"+socket);
     if (socket != null) {
       try {
         Log.i(Retrofit.TAG,"socket.close()");

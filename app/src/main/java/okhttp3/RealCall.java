@@ -190,6 +190,7 @@ final class RealCall implements Call {
     interceptors.add(retryAndFollowUpInterceptor);
     interceptors.add(new BridgeInterceptor(client.cookieJar()));
     InternalCache internalCache = client.internalCache();
+    Log.i(Retrofit.TAG, " internalCache :" +internalCache);
     interceptors.add(new CacheInterceptor(internalCache));
     interceptors.add(new ConnectInterceptor(client));
     if (!forWebSocket) {

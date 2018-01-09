@@ -84,9 +84,9 @@ public final class Http1Codec implements HttpCodec {
   /** The stream allocation that owns this stream. May be null for HTTPS proxy tunnels. */
   final StreamAllocation streamAllocation;
 
-  /** 输入流，从服务端获取response */
+  /** 输入流，从服务端获取response, 封装了inputstream*/
   final BufferedSource source;
-  /** 输入流，从客户端写数据给服务器 */
+  /** 输入流，从客户端写数据给服务器 封装了outputstream*/
   final BufferedSink sink;
 
   int state = STATE_IDLE;
@@ -136,6 +136,7 @@ public final class Http1Codec implements HttpCodec {
   }
 
   @Override public ResponseBody openResponseBody(Response response) throws IOException {
+    Log.i(Retrofit.TAG, "read response body ");
     Source source = getTransferStream(response);
     return new RealResponseBody(response.headers(), Okio.buffer(source));
   }
@@ -188,6 +189,7 @@ public final class Http1Codec implements HttpCodec {
   }
 
   @Override public Response.Builder readResponseHeaders(boolean expectContinue) throws IOException {
+    Log.i(Retrofit.TAG, "read response headers ");
     if (state != STATE_OPEN_REQUEST_BODY && state != STATE_READ_RESPONSE_HEADERS) {
       throw new IllegalStateException("state: " + state);
     }

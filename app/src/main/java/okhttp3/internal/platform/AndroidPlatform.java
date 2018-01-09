@@ -16,6 +16,7 @@
 package okhttp3.internal.platform;
 
 import android.util.Log;
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -25,13 +26,16 @@ import java.net.Socket;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
+
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
+
 import okhttp3.Protocol;
 import okhttp3.internal.Util;
 import okhttp3.internal.tls.CertificateChainCleaner;
+import retrofit2.Retrofit;
 
 /** Android 2.3 or better. */
 class AndroidPlatform extends Platform {
@@ -60,7 +64,10 @@ class AndroidPlatform extends Platform {
   @Override public void connectSocket(Socket socket, InetSocketAddress address,
       int connectTimeout) throws IOException {
     try {
+      long startTime = System.currentTimeMillis();
+      Log.i(Retrofit.TAG,"socket connect address:"+address.toString() + " ....");
       socket.connect(address, connectTimeout);
+      Log.i(Retrofit.TAG,"socket connected spend time:"+(System.currentTimeMillis()-startTime));
     } catch (AssertionError e) {
       if (Util.isAndroidGetsocknameError(e)) throw new IOException(e);
       throw e;
