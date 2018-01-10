@@ -27,3 +27,27 @@ okhttp {
 2, cache
 3, http, https, h2, spdy
 }
+
+
+总结
+1  OKHttpClient (Builder模式, 静态内部类，拥有与外部类同样属性)
+1.1  拥有很多的系统组件，也就是成员变量(dispatcher, cache, interceptor ....)
+1.2 核心方法就只有一个newCall，call = client.newCall(request);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

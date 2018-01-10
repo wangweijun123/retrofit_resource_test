@@ -39,8 +39,8 @@ import retrofit2.Retrofit;
  * of calls concurrently.
  */
 public final class Dispatcher {
-  private int maxRequests = 64;//
-  private int maxRequestsPerHost = 5;
+  private int maxRequests = 64;// 并发最大请求数量64个请求
+  private int maxRequestsPerHost = 5; // 而且同时并发一个host只能5个，否则排队等待
   private Runnable idleCallback;
 
   /** Executes calls. Created lazily. */
@@ -51,12 +51,15 @@ public final class Dispatcher {
   /** Ready async calls in the order they'll be run. */
 
   /** 这三个队列只是对call的一个引用，new 的线程的workQueue才是真正的任务队列，这个为了每台主机同时运行5个任务来计算的*/
+  // 缓存队列，并发超过64个或者同一个域名超过5个，请求call进入缓存队列
   private final Deque<AsyncCall> readyAsyncCalls = new ArrayDeque<>();
 
   /** Running asynchronous calls. Includes canceled calls that haven't finished yet. */
+  // 正在运行的队列(异步),在请求之前加入队列，请求完成从队列中移除
   private final Deque<AsyncCall> runningAsyncCalls = new ArrayDeque<>();
 
   /** Running synchronous calls. Includes canceled calls that haven't finished yet. */
+  // 这个队列也是一样，只是它是一个同步的队列
   private final Deque<RealCall> runningSyncCalls = new ArrayDeque<>();
 
   public Dispatcher(ExecutorService executorService) {
@@ -71,6 +74,8 @@ public final class Dispatcher {
       synchronized (Dispatcher.this) {
         if (executorService == null) {
           // 执行任务的线程数量无限大，当然，空闲时间只有一分中
+          // 线程池，最少0个，最大就是max，所以有上面deque来控制线程数量，不可能无限增大，
+          // 线程生命周期为一分钟，
           executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
                   new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp Dispatcher", false));
         }
@@ -139,8 +144,9 @@ public final class Dispatcher {
   synchronized void enqueue(AsyncCall call) {
     Log.i(Retrofit.TAG, "runningAsyncCalls.size()=="+(runningAsyncCalls.size())+", maxRequests:"+maxRequests +
             ", runningCallsForHost(call)="+(runningCallsForHost(call))+", maxRequestsPerHost:"+maxRequestsPerHost);
+    // 如果正在执行的请求小于设定值即64，并且请求同一个主机的request小于设定值即5
     if (runningAsyncCalls.size() < maxRequests && runningCallsForHost(call) < maxRequestsPerHost) {
-      Log.i(Retrofit.TAG, "异步的call满足条件(正在执行的call不超过64的默认值，同一个host的call不能超过5个)，直接添加到runningAsyncCalls双端队列，线程池立马执行它");
+      Log.i(Retrofit.TAG, "异步的call满足条件(正在执行的request不超过64的默认值，同一个主机的request不能超过5个)，直接添加到runningAsyncCalls双端队列，线程池立马执行它");
       runningAsyncCalls.add(call);
       executorService().execute(call);
     } else {

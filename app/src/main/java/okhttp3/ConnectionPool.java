@@ -63,6 +63,7 @@ public final class ConnectionPool {
       Log.i(Retrofit.TAG,"connection cleanup start run ...");
       while (true) {
         long waitNanos = cleanup(System.nanoTime());
+        Log.i(Retrofit.TAG,"clean up return -1 quit 死循坏return 就over了");
         if (waitNanos == -1) return;
         if (waitNanos > 0) {
           long waitMillis = waitNanos / 1000000L;
@@ -71,6 +72,8 @@ public final class ConnectionPool {
             try {
               ConnectionPool.this.wait(waitMillis, (int) waitNanos);
             } catch (InterruptedException ignored) {
+              //清理线程在waiting状态，如果被打断，抛异常，因为抛异常的逻辑while(true)循坏里面
+              // 所以继续下一次循坏
             }
           }
         }

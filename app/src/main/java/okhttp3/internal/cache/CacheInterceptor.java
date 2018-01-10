@@ -66,17 +66,17 @@ public final class CacheInterceptor implements Interceptor {
     Response cacheCandidate = cache != null
         ? cache.get(chain.request())
         : null;
-    Log.i(Retrofit.TAG, "cache:" + cache+", cacheCandidate:"+cacheCandidate);
+    Log.i(Retrofit.TAG, "cache:" + cache+",候选的缓存 cacheCandidate:"+cacheCandidate);
     long now = System.currentTimeMillis();
 
     CacheStrategy strategy = new CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();
     Request networkRequest = strategy.networkRequest;
     Response cacheResponse = strategy.cacheResponse;
-    Log.i(Retrofit.TAG, "cacheResponse:" + cacheResponse);
+
     if (cache != null) {
       cache.trackResponse(strategy);
     }
-
+    Log.i(Retrofit.TAG, "cacheCandidate:"+cacheCandidate+", cacheResponse:" + cacheResponse);
     if (cacheCandidate != null && cacheResponse == null) {
       Log.i(Retrofit.TAG,"不能用 cacheCandidate 缓存，close it");
       closeQuietly(cacheCandidate.body()); // The cache candidate wasn't applicable. Close it.

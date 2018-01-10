@@ -25,10 +25,10 @@ import okhttp3.internal.http.HttpMethod;
  * immutable.
  */
 public final class Request {
-  final HttpUrl url;
-  final String method;
-  final Headers headers;
-  final RequestBody body;
+  final HttpUrl url;// url
+  final String method;// method
+  final Headers headers;// headers
+  final RequestBody body;// body
   final Object tag;
 
   private volatile CacheControl cacheControl; // Lazily initialized.

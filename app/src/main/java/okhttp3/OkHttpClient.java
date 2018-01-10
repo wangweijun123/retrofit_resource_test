@@ -120,6 +120,8 @@ import retrofit2.Retrofit;
  *
  * <p>OkHttp also uses daemon threads for HTTP/2 connections. These will exit automatically if they
  * remain idle.
+ *
+ * 用户n多成员变量，builder模式默认设置
  */
 public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory {
   static final List<Protocol> DEFAULT_PROTOCOLS = Util.immutableList(

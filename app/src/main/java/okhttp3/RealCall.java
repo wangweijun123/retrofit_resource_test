@@ -35,6 +35,9 @@ import retrofit2.Retrofit;
 
 import static okhttp3.internal.platform.Platform.INFO;
 
+/**
+ * 请求任务的封装(属性有client，request)
+ */
 final class RealCall implements Call {
   final OkHttpClient client;
   final RetryAndFollowUpInterceptor retryAndFollowUpInterceptor;
@@ -61,6 +64,11 @@ final class RealCall implements Call {
     return originalRequest;
   }
 
+  /**
+   * 同步
+   * @return
+   * @throws IOException
+   */
   @Override public Response execute() throws IOException {
     Log.i(Retrofit.TAG, "RealCall execute ..." + this);
     synchronized (this) {
@@ -86,6 +94,10 @@ final class RealCall implements Call {
     retryAndFollowUpInterceptor.setCallStackTrace(callStackTrace);
   }
 
+  /**
+   * 异步
+   * @param responseCallback
+   */
   @Override public void enqueue(Callback responseCallback) {
     synchronized (this) {
       if (executed) throw new IllegalStateException("Already Executed");
@@ -178,6 +190,15 @@ final class RealCall implements Call {
     return originalRequest.url().redact();
   }
 
+  /**
+   * 拦截器链条(递归)，从这里这个链条获取结果，每一个interceptor完成单一任务
+   * httploginterceptor,请求之前打印log，请求完成打印log
+   * cacheinterceptor, 缓存处理
+   * ConnectionInterceptor 建立连接
+   *
+   * @return
+   * @throws IOException
+   */
   Response getResponseWithInterceptorChain() throws IOException {
     Log.i(Retrofit.TAG, "RealCall getResponseWithInterceptorChain ...");
     // Build a full stack of interceptors.
@@ -191,6 +212,7 @@ final class RealCall implements Call {
     interceptors.add(new BridgeInterceptor(client.cookieJar()));
     InternalCache internalCache = client.internalCache();
     Log.i(Retrofit.TAG, " internalCache :" +internalCache);
+    // 判断缓存，读取缓存，更新缓存
     interceptors.add(new CacheInterceptor(internalCache));
     interceptors.add(new ConnectInterceptor(client));
     if (!forWebSocket) {

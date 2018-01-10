@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+
 import okhttp3.internal.Util;
 import okhttp3.internal.cache.CacheRequest;
 import okhttp3.internal.cache.CacheStrategy;
@@ -144,7 +145,7 @@ public final class Cache implements Closeable, Flushable {
 
   final InternalCache internalCache = new InternalCache() {
     @Override public Response get(Request request) throws IOException {
-      Log.i(Retrofit.TAG, " get Response from request:"+request);
+      Log.i(Retrofit.TAG, " get Response from cache for request:"+request);
       return Cache.this.get(request);
     }
 
@@ -184,6 +185,7 @@ public final class Cache implements Closeable, Flushable {
   }
 
   Cache(File directory, long maxSize, FileSystem fileSystem) {
+    Log.i(Retrofit.TAG, "实例化cache，同时实例化属性 disklrucache");
     this.diskLruCache = DiskLruCache.create(fileSystem, directory, VERSION, ENTRY_COUNT, maxSize);
   }
 
@@ -193,7 +195,7 @@ public final class Cache implements Closeable, Flushable {
 
   Response get(Request request) {
     String key = key(request.url());
-    Log.i(Retrofit.TAG, "key:"+key);
+    Log.i(Retrofit.TAG, "根据request url的MD5值  key:"+key);
     DiskLruCache.Snapshot snapshot;
     Entry entry;
     try {
@@ -230,7 +232,7 @@ public final class Cache implements Closeable, Flushable {
 
   CacheRequest put(Response response) {
     String requestMethod = response.request().method();
-
+    // 只缓存get请求的返回结果
     if (HttpMethod.invalidatesCache(response.request().method())) {
       try {
         remove(response.request());
@@ -240,6 +242,7 @@ public final class Cache implements Closeable, Flushable {
       return null;
     }
     if (!requestMethod.equals("GET")) {
+      // 不缓存除get之外的响应
       // Don't diskLruCache non-GET responses. We're technically allowed to diskLruCache
       // HEAD requests and some POST requests, but the complexity of doing
       // so is high and the benefit is low.
@@ -622,11 +625,10 @@ public final class Cache implements Closeable, Flushable {
     }
 
     public void writeTo(DiskLruCache.Editor editor) throws IOException {
-      Log.i(Retrofit.TAG, "write header to sdcard ...");
+      Log.i(Retrofit.TAG, "write header into xxx.0");
       BufferedSink sink = Okio.buffer(editor.newSink(ENTRY_METADATA));
-      Log.i(Retrofit.TAG, "url:"+url+", requestMethod:"+requestMethod+
-      ", varyHeaders.size():"+varyHeaders.size());
-              sink.writeUtf8(url)
+      Log.i(Retrofit.TAG, "url:"+url+", requestMethod:"+requestMethod+ ", varyHeaders.size():"+varyHeaders.size());
+      sink.writeUtf8(url)
           .writeByte('\n');
       sink.writeUtf8(requestMethod)
           .writeByte('\n');
@@ -673,7 +675,7 @@ public final class Cache implements Closeable, Flushable {
         }
       }
       sink.close();
-      Log.i(Retrofit.TAG, "write header to sdcard finished");
+      Log.i(Retrofit.TAG, "write header to xxx.0 finished");
     }
 
     private boolean isHttps() {

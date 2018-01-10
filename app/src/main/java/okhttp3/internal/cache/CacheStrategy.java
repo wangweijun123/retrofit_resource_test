@@ -65,6 +65,7 @@ public final class CacheStrategy {
   public static boolean isCacheable(Response response, Request request) {
     // Always go to network for uncacheable response codes (RFC 7231 section 6.1),
     // This implementation doesn't support caching partial content.
+    // 能缓存的条件，第一: 一定是成功响应， 第二: 头部header信息cachecontrol能让客户端缓存
     switch (response.code()) {
       case HTTP_OK:
       case HTTP_NOT_AUTHORITATIVE:

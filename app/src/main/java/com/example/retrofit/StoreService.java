@@ -211,12 +211,14 @@ public class StoreService {
                 @Override
                 public void onResponse(Call<MyResp> call, Response<MyResp> response) {
                     MyResp list = response.body();
+                    Log.i(Retrofit.TAG, "tid:"+Thread.currentThread().getId());
                     Log.i(Retrofit.TAG, response.headers().toString());
                     Log.i(Retrofit.TAG,  response.code()+", "+response.message());
                 }
 
                 @Override
                 public void onFailure(Call<MyResp> call, Throwable t) {
+                    Log.i(Retrofit.TAG, "tid:"+Thread.currentThread().getId());
                     t.printStackTrace();
                     Log.i(Retrofit.TAG, "onFailure status");
                 }

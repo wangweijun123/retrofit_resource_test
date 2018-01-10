@@ -1,0 +1,13 @@
+http://mapi.letvstore.com/mapi/edit/recommend?pagefrom=1&pagesize=1&code=RANK_HOT
+GET
+0
+HTTP/1.1 200 OK
+8
+Server: nginx
+Date: Wed, 10 Jan 2018 09:32:34 GMT
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Leeco: 0.017-SLBMTIzLjU5LjEyMi4xMTAK-ID200112.42.179:80-200
+OkHttp-Sent-Millis: 1515576754131
+OkHttp-Received-Millis: 1515576754168

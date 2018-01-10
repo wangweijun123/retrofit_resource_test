@@ -212,22 +212,25 @@ public final class DiskLruCache implements Closeable, Flushable {
     assert Thread.holdsLock(this);
 
     if (initialized) {
-      Log.i(Retrofit.TAG, "缓存已初始化完毕");
+      Log.i(Retrofit.TAG, "缓存已初始化完毕 initialized:"+initialized);
       return; // Already initialized.
     }
     Log.i(Retrofit.TAG, " initialize ....");
     // If a bkp file exists, use it instead.
-    Log.i(Retrofit.TAG, "fileSystem.exists(journalFileBackup) : "+fileSystem.exists(journalFileBackup));
+    Log.i(Retrofit.TAG, "journalFileBackup exists ? "+fileSystem.exists(journalFileBackup));
     if (fileSystem.exists(journalFileBackup)) {
       // If journal file also exists just delete backup file.
+      Log.i(Retrofit.TAG, "journalFile exists ? " + fileSystem.exists(journalFile));
       if (fileSystem.exists(journalFile)) {
+        Log.i(Retrofit.TAG, "journal file also exists just delete backup file delete "+journalFileBackup);
         fileSystem.delete(journalFileBackup);
       } else {
+        Log.i(Retrofit.TAG, "rename "+journalFileBackup+ " to " + journalFile);
         fileSystem.rename(journalFileBackup, journalFile);
       }
     }
-    Log.i(Retrofit.TAG,"fileSystem.exists(journalFile) : "+fileSystem.exists(journalFile));
     // Prefer to pick up where we left off.
+    Log.i(Retrofit.TAG, "journalFile exists ? " + fileSystem.exists(journalFile));
     if (fileSystem.exists(journalFile)) {
       try {
         readJournal();
@@ -403,20 +406,20 @@ public final class DiskLruCache implements Closeable, Flushable {
    * exists.
    */
   synchronized void rebuildJournal() throws IOException {
+    Log.i(Retrofit.TAG, "rebuild journal ...");
     if (journalWriter != null) {
       journalWriter.close();
     }
 
     BufferedSink writer = Okio.buffer(fileSystem.sink(journalFileTmp));
     try {
-      Log.i(Retrofit.TAG, "rebuild journal file");
-      Log.i(Retrofit.TAG, "write to libcore.io.DiskLruCache ....");
+      Log.i(Retrofit.TAG, "write MAGIC,VERSION_1,appVersion,valueCount  into " + journalFileTmp);
       writer.writeUtf8(MAGIC).writeByte('\n');
       writer.writeUtf8(VERSION_1).writeByte('\n');
       writer.writeDecimalLong(appVersion).writeByte('\n');
       writer.writeDecimalLong(valueCount).writeByte('\n');
       writer.writeByte('\n');
-
+      Log.i(Retrofit.TAG, "lruEntries size : " + lruEntries.size());
       for (Entry entry : lruEntries.values()) {
         if (entry.currentEditor != null) {
           writer.writeUtf8(DIRTY).writeByte(' ');
@@ -435,15 +438,20 @@ public final class DiskLruCache implements Closeable, Flushable {
       writer.close();
     }
 
+    Log.i(Retrofit.TAG, "journalFile exist ? " + fileSystem.exists(journalFile));
     if (fileSystem.exists(journalFile)) {
+      Log.i(Retrofit.TAG, "rename "+ journalFile + " to "+ journalFileBackup);
       fileSystem.rename(journalFile, journalFileBackup);
     }
+    Log.i(Retrofit.TAG, "rename "+ journalFileTmp + " to "+ journalFile);
     fileSystem.rename(journalFileTmp, journalFile);
+    Log.i(Retrofit.TAG, "delete "+ journalFileBackup);
     fileSystem.delete(journalFileBackup);
 
     journalWriter = newJournalWriter();
     hasJournalErrors = false;
     mostRecentRebuildFailed = false;
+    Log.i(Retrofit.TAG, "rebuild journal finished");
   }
 
   /**
@@ -518,10 +526,9 @@ public final class DiskLruCache implements Closeable, Flushable {
     }
 
     if (entry == null) {
-      Log.i(Retrofit.TAG,"先根据key:"+key+"创建file，放入map中，然后在把头信息与body信息写入文件");
+      Log.i(Retrofit.TAG,"先根据key:"+key+"创建entry，放入map中，然后在把头信息与body信息写入文件");
       entry = new Entry(key);
-      Log.i(Retrofit.TAG, "put key:" + key+
-      ", entry:"+entry + " to lruEntries");
+      Log.i(Retrofit.TAG, "put key:" + key+ ", entry:"+entry + " to lruEntries");
       lruEntries.put(key, entry);
       printlruEntries();
     }
@@ -611,6 +618,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     redundantOpCount++;
     entry.currentEditor = null;
     if (entry.readable | success) {
+      // clean  key ， header size, body size
       entry.readable = true;
       journalWriter.writeUtf8(CLEAN).writeByte(' ');
       journalWriter.writeUtf8(entry.key);
@@ -829,7 +837,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     };
   }
 
-  /** A snapshot of the values for an entry. */
+  /** A snapshot of the values for an entry. 快照*/
   public final class Snapshot implements Closeable {
     private final String key;
     private final long sequenceNumber;
