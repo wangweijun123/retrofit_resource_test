@@ -103,7 +103,8 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   /**
    * The maximum number of concurrent streams that can be carried by this connection. If {@code
    * allocations.size() < allocationLimit} then new streams can be created on this connection.
-   * 连接之上分配流个上线
+   * 连接之上分配流个上线,在http1.x中，在一个连接之上只能最多建立一个stream,如果并发请求
+   * 必须建立多个socket
    */
   public int allocationLimit = 1;
 
@@ -412,6 +413,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     if (allocations.size() >= allocationLimit || noNewStreams) return false;
 
     // If the non-host fields of the address don't overlap, we're done.
+    // 判断是否是同一个地址，要求很多，不只是host与端口号，proxy啥得
     if (!Internal.instance.equalsNonHost(this.route.address(), address)) return false;
 
     // If the host exactly matches, we're done: this connection can carry the address.

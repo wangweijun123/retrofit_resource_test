@@ -30,9 +30,75 @@ okhttp {
 
 
 总结
+
+
 1  OKHttpClient (Builder模式, 静态内部类，拥有与外部类同样属性)
 1.1  拥有很多的系统组件，也就是成员变量(dispatcher, cache, interceptor ....)
 1.2 核心方法就只有一个newCall，call = client.newCall(request);
+
+
+
+HTTP的那些事
+
+2 connection (http, https, spdy, http2.0)
+2.1 计算资源的MD5值(也可以叫数字摘要，算法有MD5、SHA1、SHA256)，确保资源的没被修改
+
+https : 安全的传输
+如何保证安全: 1, 密文 2, 验证身份(证书)  3, 完整性(确保不被篡改,hash算法与md5值)
+
+spdy : 一个连接同时并发多个请求(多路复用), server push(长连接)
+
+http2.0 基于google spdy协议, 添加的是头部压缩,
+
+tunnel 隧道 : 基于http协议建立TCP连接，发送非http协议的数据流量(就是没有标准的请求行，头部，body)
+
+proxy:
+代理作用:
+CDN : 提供访问速度
+抓包 (注意https443 抓包，需要安装抓包工具的证书，让系统信任才行)
+翻墙 : 客户不能访问，代理能访问，所以呵呵
+防火墙: 所有流量全部经过代理
+
+代理与反向代理
+
+代理: 代理客户端发送请求到目标服务器，隐藏客户端的ip
+
+反向代理 : 代理服务器处理客户端的请求,隐藏目标服务器ip
+
+socket编程不基于任何协议，也就是任何协议都ok,协议自己定制
+
+
+"IP地址+端口号"来区分不同的服务的。Web服务、FTP服务
+
+
+3 okhttp 线程池，任务调度
+
+因为Dispatcher中一个线程池threadpool，三个双向队列Deque<AsyncCall>(不过队列只是一个引用而已)
+
+
+线程池：
+侠义理解: 就是池里有多个线程，任务来了，从池里后去空闲线程去执行，如果没有，new一个线程，
+如果线程达到上限，排队等待，等其他任务执行完成后执行
+
+
+广义: 是因为硬件的提升，CPU处理器多核的出现，减少cpu闲置时间，增加吞吐量，当然线程数量得控制
+避免空闲多余线程占内存，线程切换给系统带来压力，okhttp 最大并发64线程
+
+
+第三方 aar与主项目融合, apk打包流程, SynchronousQueue 的测试
+
+
+4 拦截器链条(责任链模式,每一个interceptor单一职责)
+
+
+每个拦截器实现单一功能,
+
+
+RetryAndFollowUpInterceptor  重试与重定向的逻辑还没测试
+
+线程之间是如何通讯: wait() 与 notify()
+
+
 
 
 

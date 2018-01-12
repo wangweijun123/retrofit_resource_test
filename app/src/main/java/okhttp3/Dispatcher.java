@@ -37,6 +37,8 @@ import retrofit2.Retrofit;
  * <p>Each dispatcher uses an {@link ExecutorService} to run calls internally. If you supply your
  * own executor, it should be able to run {@linkplain #getMaxRequests the configured maximum} number
  * of calls concurrently.
+ *
+ * 请求的分发
  */
 public final class Dispatcher {
   private int maxRequests = 64;// 并发最大请求数量64个请求
@@ -44,6 +46,7 @@ public final class Dispatcher {
   private Runnable idleCallback;
 
   /** Executes calls. Created lazily. */
+  // 消费者线程,完成请求的处理
   private ExecutorService executorService;
 
   /** 异步请求的缓存队列，当正在运行的请求数量大于最大请求数量，先把它放到准备请求队列中暂存，
@@ -55,7 +58,8 @@ public final class Dispatcher {
   private final Deque<AsyncCall> readyAsyncCalls = new ArrayDeque<>();
 
   /** Running asynchronous calls. Includes canceled calls that haven't finished yet. */
-  // 正在运行的队列(异步),在请求之前加入队列，请求完成从队列中移除
+  // 正在运行的队列(异步),在请求之前加入队列，请求完成从队列中移除,
+          // 只是一个引用，来判断请求的并发量，注意它并不是消费者缓存
   private final Deque<AsyncCall> runningAsyncCalls = new ArrayDeque<>();
 
   /** Running synchronous calls. Includes canceled calls that haven't finished yet. */
@@ -75,7 +79,13 @@ public final class Dispatcher {
         if (executorService == null) {
           // 执行任务的线程数量无限大，当然，空闲时间只有一分中
           // 线程池，最少0个，最大就是max，所以有上面deque来控制线程数量，不可能无限增大，
-          // 线程生命周期为一分钟，
+          // 线程生命周期为一分钟，无边界限制的线程池
+          // SynchronousQueue 任务队列size=0 任务队列，也就是最快消费
+          //SynchronousQueue每个插入操作必须等待另一个线程的移除操作，
+          // 同样任何一个移除操作都等待另一个线程的插入操作。
+          // 因此队列内部其实没有任何一个元素，或者说容量为0，
+          // 严格说并不是一种容器，由于队列没有容量
+          // 高频请求场景，无疑是最合适的
           executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
                   new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp Dispatcher", false));
         }
@@ -174,6 +184,7 @@ public final class Dispatcher {
   }
 
   private void promoteCalls() {
+    // 从缓存队列移除call，添加进正在运行队列,这里没看到同步，是因为调用它的方法做了同步
     if (runningAsyncCalls.size() >= maxRequests) return; // Already running max capacity.
     if (readyAsyncCalls.isEmpty()) return; // No ready calls to promote.
 

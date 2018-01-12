@@ -37,6 +37,7 @@ import retrofit2.Retrofit;
  * Selects routes to connect to an origin server. Each connection requires a choice of proxy server,
  * IP address, and TLS mode. Connections may also be recycled.
  * 一个域名有多个IP，这就是自动重连的来源
+ * 负责三件事情: 1收集路由信息，2选择路由，3维护失败路由。
  */
 public final class RouteSelector {
   private final Address address;

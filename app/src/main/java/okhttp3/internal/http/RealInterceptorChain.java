@@ -35,10 +35,11 @@ public final class RealInterceptorChain implements Interceptor.Chain {
   private final List<Interceptor> interceptors;// 一开始就有值
   private final Request request;// 一开始就有值
 
+  // 下面属性会在执行各个拦截器的过程中一步一步赋值
   // 如下属性后拦截器来实例化的
   private final StreamAllocation streamAllocation;// 由RetryAndFollowUpInterceptor生成
-  private final HttpCodec httpCodec;
-  private final RealConnection connection;
+  private final HttpCodec httpCodec; // CallServerInterceptor
+  private final RealConnection connection; // ConnectionInterceptor
   private final int index;
   private int calls;
 

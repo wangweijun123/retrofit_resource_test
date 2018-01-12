@@ -114,7 +114,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
     int followUpCount = 0;
     Response priorResponse = null;
     while (true) {
-      Log.i(Retrofit.TAG, this + "RetryAndFollow  canceled:"+canceled);
+      Log.i(Retrofit.TAG, "RetryAndFollow  canceled:"+canceled);
       if (canceled) {
         streamAllocation.release();
         throw new IOException("Canceled");
@@ -123,11 +123,17 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
       Response response = null;
       boolean releaseConnection = true;
       try {
+
+        //  执行下一个拦截器，即BridgeInterceptor
+        // 这里有个很重的信息，即会将初始化好的连接对象传递给下一个拦截器，
+        // 也是贯穿整个请求的连击对象，上面我们说过，在拦截器执行过程中，
+        // RealInterceptorChain的几个属性字段会一步一步赋值
         response = ((RealInterceptorChain) chain).proceed(request, streamAllocation, null, null);
         releaseConnection = false;
       } catch (RouteException e) {
         Log.i(Retrofit.TAG, this + " RouteException ");
         // The attempt to connect via a route failed. The request will not have been sent.
+        //  如果有异常，判断是否要恢复
         if (!recover(e.getLastConnectException(), false, request)) {
           Log.i(Retrofit.TAG, this + " RouteException throw e.getLastConnectException");
           throw e.getLastConnectException();
@@ -161,9 +167,9 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
                     .build())
             .build();
       }
-
+      // 重定向的判断followUpRequest
       Request followUp = followUpRequest(response);
-      Log.i(Retrofit.TAG, "followUp:"+followUp + ", forWebSocket:"+forWebSocket + ", forWebSocket:"+forWebSocket);
+      Log.i(Retrofit.TAG, "followUp:"+followUp + ", forWebSocket:"+forWebSocket);
       if (followUp == null) {
         if (!forWebSocket) {
           streamAllocation.release();
@@ -224,6 +230,24 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
    */
   private boolean recover(IOException e, boolean requestSendStarted, Request userRequest) {
     streamAllocation.streamFailed(e);
+//    应用层配置不在连接(默认为true)，则不可恢复
+//
+//    请求Request是不可重复使用的Request，则不可恢复
+//
+//    根据Exception的类型判断是否可以恢复的 (isRecoverable()方法)
+//
+//    3.1、如果是协议错误（ProtocolException）则不可恢复
+//
+//    3.2、如果是中断异常（InterruptedIOException）则不可恢复
+//
+//    3.3、如果是SSL握手错误（SSLHandshakeException && CertificateException）则不可恢复
+//
+//    3.4、certificate pinning错误（SSLPeerUnverifiedException）则不可恢复
+//
+//    没用更多线路可供选择 则不可恢复
+//
+//    如果上述条件都不满足，则这个request可以恢复
+
 
     // The application layer has forbidden retries.
     if (!client.retryOnConnectionFailure()) return false;
