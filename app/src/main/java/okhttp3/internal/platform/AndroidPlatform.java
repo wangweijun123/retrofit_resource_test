@@ -155,6 +155,7 @@ class AndroidPlatform extends Platform {
 
   @Override public boolean isCleartextTrafficPermitted(String hostname) {
     try {
+      // 只有大于6.0上才有这个类，所以用反射
       Class<?> networkPolicyClass = Class.forName("android.security.NetworkSecurityPolicy");
       Method getInstanceMethod = networkPolicyClass.getMethod("getInstance");
       Object networkSecurityPolicy = getInstanceMethod.invoke(null);

@@ -82,6 +82,7 @@ public final class ConnectionPool {
   };
   /**
    * 数组存储连接
+   * 双端,双向 队列 列表
    */
   private final Deque<RealConnection> connections = new ArrayDeque<>();
   // 是一个黑名单，黑名单用来记录不可用的route
@@ -219,6 +220,10 @@ public final class ConnectionPool {
    *
    * <p>Returns the duration in nanos to sleep until the next scheduled call to this method. Returns
    * -1 if no further cleanups are required.
+   * 综上所述，我们来梳理一下清理任务，清理任务就是异步执行的，遵循两个指标，
+   * 最大空闲连接数量和最大空闲时长，满足其一则清理空闲时长最大的那个连接，
+   * 然后循环执行，要么等待一段时间，要么继续清理下一个连接，直到清理所有连接，
+   * 清理任务才结束，下一次put的时候，如果已经停止的清理任务则会被再次触发
    */
   long cleanup(long now) {
     int inUseConnectionCount = 0;// 正在使用的连接

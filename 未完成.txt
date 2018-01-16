@@ -1,0 +1,7 @@
+1 RetryAndFollowUpInterceptor  重试与重定向的逻辑还没测试
+
+2 单向列表，双向列表未测试 segment Segment, SegmentPool, ConnectionPool管理连接的生命周期
+
+3 hashcode 作用
+
+

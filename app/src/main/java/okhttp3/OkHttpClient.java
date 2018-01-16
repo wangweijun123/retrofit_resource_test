@@ -128,7 +128,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       Protocol.HTTP_2, Protocol.HTTP_1_1);
 
   static final List<ConnectionSpec> DEFAULT_CONNECTION_SPECS = Util.immutableList(
-      ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT);
+      ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT);// 支持明文请求
 
   static {
     /**
@@ -488,9 +488,9 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
       followSslRedirects = true;
       followRedirects = true;
       retryOnConnectionFailure = true;
-      connectTimeout = 10_000;
-      readTimeout = 10_000;
-      writeTimeout = 10_000;
+      connectTimeout = 10_000; // socket连接超时 10秒
+      readTimeout = 10_000;   // 读取数据超时 10
+      writeTimeout = 10_000;  // 写数据超时10 s
       pingInterval = 0;
     }
 

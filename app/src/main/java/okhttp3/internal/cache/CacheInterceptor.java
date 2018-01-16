@@ -68,11 +68,12 @@ public final class CacheInterceptor implements Interceptor {
         : null;
     Log.i(Retrofit.TAG, "cache:" + cache+",候选的缓存 cacheCandidate:"+cacheCandidate);
     long now = System.currentTimeMillis();
-
+    //2、获取缓存的策略
     CacheStrategy strategy = new CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();
     Request networkRequest = strategy.networkRequest;
     Response cacheResponse = strategy.cacheResponse;
 
+    //3、监测缓存
     if (cache != null) {
       cache.trackResponse(strategy);
     }

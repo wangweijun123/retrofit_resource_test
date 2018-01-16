@@ -272,6 +272,18 @@
             android:onClick="testReDirectUrl"
             android:text="重定向测试" />
 
+        <Button
+            android:id="@+id/button34"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testCleanup"
+            android:text="清理文件线程测试" />
 
+        <Button
+            android:id="@+id/button35"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testRename"
+            android:text="rename测试" />
     </LinearLayout>
 </ScrollView>

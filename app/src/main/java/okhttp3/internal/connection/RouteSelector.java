@@ -173,6 +173,7 @@ public final class RouteSelector {
     } else {
       // Try each address for best behavior in mixed IPv4/IPv6 environments.
       Log.i(Retrofit.TAG, "lookup socketHost:"+socketHost + " for addresses");
+      // 一个域名可能对应多个ip地址
       List<InetAddress> addresses = address.dns().lookup(socketHost);
       for (int i = 0, size = addresses.size(); i < size; i++) {
         InetAddress inetAddress = addresses.get(i);

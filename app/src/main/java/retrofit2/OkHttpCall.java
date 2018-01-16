@@ -189,7 +189,7 @@ final class OkHttpCall<T> implements Call<T> {
 
   private okhttp3.Call createRawCall() throws IOException {
     Request request = serviceMethod.toRequest(args);
-    // callFactory is class OkHttpClient
+    // callFactory is class OkHttpClient, 实例化RealCall
     okhttp3.Call call = serviceMethod.callFactory.newCall(request);
     Log.i(Retrofit.TAG, this + " createRawCall call:"+call);
     if (call == null) {

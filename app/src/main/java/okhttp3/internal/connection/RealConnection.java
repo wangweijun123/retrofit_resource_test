@@ -75,7 +75,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   private final Route route;
 
   // The fields below are initialized by connect() and never reassigned.
-
+//下面这些字段，通过connect()方法开始初始化，并且绝对不会再次赋值
   /** The low-level TCP socket. */
   private Socket rawSocket;
 
@@ -84,8 +84,9 @@ public final class RealConnection extends Http2Connection.Listener implements Co
    * {@link #rawSocket} itself if this connection does not use SSL.
    * TCP连接或者说socket连接，或者我们常说三次握手,
    * 释放realse连接，断开握手
+   * 应用层sockt，所以有可能是SslSocket
    */
-  private Socket socket;
+  private Socket socket;// 可能是rawSocket, 也可能是sslSocket
   private Handshake handshake;
   private Protocol protocol;
   private Http2Connection http2Connection;
@@ -93,8 +94,9 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   private BufferedSink sink; // 相当于输出流
 
   // The fields below track connection state and are guarded by connectionPool.
-
+//下面这个字段是 属于表示链接状态的字段，并且有connectPool统一管理
   /** If true, no new streams can be created on this connection. Once true this is always true. */
+
   /**  noNewStream可以简单理解为它表示该连接不可用。这个值一旦被设为true,则这个conncetion则不会再创建stream。*/
   public boolean noNewStreams;
 
@@ -104,8 +106,9 @@ public final class RealConnection extends Http2Connection.Listener implements Co
    * The maximum number of concurrent streams that can be carried by this connection. If {@code
    * allocations.size() < allocationLimit} then new streams can be created on this connection.
    * 连接之上分配流个上线,在http1.x中，在一个连接之上只能最多建立一个stream,如果并发请求
-   * 必须建立多个socket
+   * 必须建立多个socket, 在http2.0可以同时并发N个stream
    */
+  //此链接可以承载最大并发流的限制，如果不超过限制，可以随意增加
   public int allocationLimit = 1;
 
   /** Current streams carried by this connection.
@@ -134,6 +137,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
 
   public void connect(
       int connectTimeout, int readTimeout, int writeTimeout, boolean connectionRetryEnabled) {
+    // protocol 它表示在整个连接建立
     if (protocol != null) throw new IllegalStateException("already connected");
 
     RouteException routeException = null;
@@ -156,9 +160,11 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       try {
         boolean istunnel = route.requiresTunnel();
         Log.i(Retrofit.TAG, "是隧道吗 istunnel : "+ istunnel);
+        // 如果要求隧道模式，建立通道连接，通常不是这种
         if (istunnel) {
           connectTunnel(connectTimeout, readTimeout, writeTimeout);
         } else {
+          // 一般都走这条逻辑了，实际上很简单就是socket的连接
           connectSocket(connectTimeout, readTimeout);
         }
         Log.i(Retrofit.TAG,"socket 连接建立后，确定传输协议");
@@ -235,7 +241,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     Log.i(Retrofit.TAG, "rawSocket:"+rawSocket.hashCode());
     rawSocket.setSoTimeout(readTimeout);
     try {
-      //内部就是调用socket.connect(InetAddress, timeout)方法建立连接
+      //内部就是调用AndroidPlatform--->socket.connect(InetAddress, timeout)方法建立连接
       Platform.get().connectSocket(rawSocket, route.socketAddress(), connectTimeout);
     } catch (ConnectException e) {
       ConnectException ce = new ConnectException("Failed to connect to " + route.socketAddress());
@@ -251,6 +257,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     Log.i(Retrofit.TAG,"establishProtocol socketFactory : "+
             (route.address().sslSocketFactory() == null));
     if (route.address().sslSocketFactory() == null) {
+      // 明文传输1.1
       protocol = Protocol.HTTP_1_1;
       Log.i(Retrofit.TAG, "protocol http1.1 socket is rawSocket");
       socket = rawSocket;
@@ -276,6 +283,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
     SSLSocket sslSocket = null;
     try {
       // Create the wrapper over the connected socket.
+      // 基于原始的socket,创建一个 sslSocket
       sslSocket = (SSLSocket) sslSocketFactory.createSocket(
           rawSocket, address.url().host(), address.url().port(), true /* autoClose */);
 
@@ -404,7 +412,9 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   /**
    * Returns true if this connection can carry a stream allocation to {@code address}. If non-null
    * {@code route} is the resolved route for a connection.
+   * 这个方法主要是判断面对给出的addres和route，这个realConnetion是否可以重用
    */
+
   public boolean isEligible(Address address, Route route) {
     // If this connection is not accepting new streams, we're done.
     Log.i(Retrofit.TAG, "address:"+address+", route:"+route);

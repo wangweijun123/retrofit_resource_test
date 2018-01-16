@@ -98,6 +98,69 @@ RetryAndFollowUpInterceptor  重试与重定向的逻辑还没测试
 
 线程之间是如何通讯: wait() 与 notify()
 
+5 okio(封装java.io) 以及file system
+
+okio 对java io 的封装
+
+String ---encode编码成(字符集)--> byte[]
+
+byte[] ----decode解码(字符集charset)-----> String
+
+Segment 双向列表
+
+5   cache
+
+http 报文 {
+    header(头部) body(主体)
+}
+
+一个key 对应着四个文件  key.0  key.1  key.0.tmp  key.1.tmp
+
+读取的是clean文件,也就是key.0 key.1
+
+写的是dirty, 也就是key.0.tmp  key.1.tmp, 成功后rename clean
+
+目的就是读写分离
+threadpool 中一个线程
+
+cleanupRunnable {
+  缓存限制，清理缓存 0.75 倍数
+}
+
+response header 控制缓存
+
+最重要的连接connection
+
+retrofit 使用 ：
+
+1, 定义api 接口
+2, build Retrofit实例,传入 url, json 解析, okhttpclient 单例, 调用create, 反射实例化api接口
+实例, 调用接口，产生一个retrofit2.OkhttpCall(包装okhttp.Call)
+3, 调用call中execute(), enqune(), 进入拦截器链条处理call(对一次请求的封装,属性request,okhttpclient)
+
+4, parse(ok_response)返回retrofit.Response对象,可以使用的对象
+
+连接池{threadpool.execute(runnable)}, DiskLruCache{threadpool.execute(runnable)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

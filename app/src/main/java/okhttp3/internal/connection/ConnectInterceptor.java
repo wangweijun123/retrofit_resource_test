@@ -52,6 +52,7 @@ public final class ConnectInterceptor implements Interceptor {
     // We need the network to satisfy this request. Possibly for validating a conditional GET.
     boolean doExtensiveHealthChecks = !request.method().equals("GET");
     Log.i(Retrofit.TAG, "doExtensiveHealthChecks:"+doExtensiveHealthChecks);
+    // newStrem 这里很复杂，第一，找到连接，第二，实例化stream
     HttpCodec httpCodec = streamAllocation.newStream(client, doExtensiveHealthChecks);
     RealConnection connection = streamAllocation.connection();
 

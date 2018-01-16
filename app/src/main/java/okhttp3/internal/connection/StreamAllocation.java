@@ -196,7 +196,9 @@ public final class StreamAllocation {
     Log.i(Retrofit.TAG,"If we need a route, make one. This is a blocking operation");
     Log.i(Retrofit.TAG, "selectedRoute : " + selectedRoute);
     if (selectedRoute == null) {
-      Log.i(Retrofit.TAG, "使用下一个路由 ");
+      Log.i(Retrofit.TAG, "使用下一个路由(其实就是换下一个服务器ip)");
+      // 切换路由再在连接池里面找下，如果有则返回
+      // 线路的选择，多ip的支持
       selectedRoute = routeSelector.next();
     }
 
@@ -208,6 +210,7 @@ public final class StreamAllocation {
       // This could match due to connection coalescing.
 
       Log.i(Retrofit.TAG, "now that we have an IP address, make another attempt at getting a connection from the pool. ");
+      //更换路由再次尝试
       Internal.instance.get(connectionPool, address, this, selectedRoute);
 
       Log.i(Retrofit.TAG,"again get from the pool result connection:"+connection);
@@ -217,12 +220,15 @@ public final class StreamAllocation {
       // for an asynchronous cancel() to interrupt the handshake we're about to do.
       route = selectedRoute;
       refusedStreamCount = 0;
+
+      // 以上都不符合，创建一个连接
       result = new RealConnection(connectionPool, selectedRoute);
       Log.i(Retrofit.TAG, "创建新连接new RealConnection, 但是还不是真正的与服务器建立连接");
       acquire(result);
     }
     Log.i(Retrofit.TAG,"Do TCP + TLS handshakes. This is a blocking operation");
     // Do TCP + TLS handshakes. This is a blocking operation.
+    // 开始握手
     result.connect(connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled);
     routeDatabase().connected(result.route());
 
@@ -235,6 +241,7 @@ public final class StreamAllocation {
 
       // If another multiplexed connection to the same address was created concurrently, then
       // release this connection and acquire that one.
+      //如果这个连接是多路复用
       if (result.isMultiplexed()) {
         socket = Internal.instance.deduplicate(connectionPool, address, this);
         result = connection;

@@ -151,6 +151,8 @@ public final class DiskLruCache implements Closeable, Flushable {
   private long size = 0;
   BufferedSink journalWriter;
   final LinkedHashMap<String, Entry> lruEntries = new LinkedHashMap<>(0, 0.75f, true);
+    // 多余的行数其实就是除clean 行的数量
+    // joural 文件只会往文件末尾添加
   int redundantOpCount;
   boolean hasJournalErrors;
 
@@ -225,7 +227,8 @@ public final class DiskLruCache implements Closeable, Flushable {
         Log.i(Retrofit.TAG, "journal file also exists just delete backup file delete "+journalFileBackup);
         fileSystem.delete(journalFileBackup);
       } else {
-        Log.i(Retrofit.TAG, "rename "+journalFileBackup+ " to " + journalFile);
+        //
+        Log.i(Retrofit.TAG, "重命名其实就是删除原来的，新建的新文件rename "+journalFileBackup+ " to " + journalFile);
         fileSystem.rename(journalFileBackup, journalFile);
       }
     }
@@ -282,7 +285,9 @@ public final class DiskLruCache implements Closeable, Flushable {
   }
 
   private void readJournal() throws IOException {
-    Log.i(Retrofit.TAG, "readJournal ...journalFile:"+journalFile.getAbsoluteFile());
+    Log.i(Retrofit.TAG, "readJournal ... 获取journalFile的source即输入流 journalFile:"+journalFile.getAbsoluteFile());
+
+    //获取journalFile的source即输入流
     BufferedSource source = Okio.buffer(fileSystem.source(journalFile));
     try {
       String magic = source.readUtf8LineStrict();
@@ -347,13 +352,14 @@ public final class DiskLruCache implements Closeable, Flushable {
     int keyBegin = firstSpace + 1;
     int secondSpace = line.indexOf(' ', keyBegin);
     final String key;
-    if (secondSpace == -1) {
+    if (secondSpace == -1) {// 只有一个空格一定是REMOVE或者READ或者DIRTY 行
       key = line.substring(keyBegin);
       if (firstSpace == REMOVE.length() && line.startsWith(REMOVE)) {
+          // remvoe标识必须从map删除
         lruEntries.remove(key);
         return;
       }
-    } else {
+    } else {// 一定是干净的，有效cache
       key = line.substring(keyBegin, secondSpace);
     }
 
@@ -364,6 +370,7 @@ public final class DiskLruCache implements Closeable, Flushable {
       lruEntries.put(key, entry);
     }
     printlruEntries();
+      // 底下clean 行
     if (secondSpace != -1 && firstSpace == CLEAN.length() && line.startsWith(CLEAN)) {
       String[] parts = line.substring(secondSpace + 1).split(" ");
       entry.readable = true;
@@ -410,7 +417,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     if (journalWriter != null) {
       journalWriter.close();
     }
-
+    // 写入的是journal temp 文件
     BufferedSink writer = Okio.buffer(fileSystem.sink(journalFileTmp));
     try {
       Log.i(Retrofit.TAG, "write MAGIC,VERSION_1,appVersion,valueCount  into " + journalFileTmp);
@@ -439,6 +446,7 @@ public final class DiskLruCache implements Closeable, Flushable {
     }
 
     Log.i(Retrofit.TAG, "journalFile exist ? " + fileSystem.exists(journalFile));
+    // temp文件中数据转移
     if (fileSystem.exists(journalFile)) {
       Log.i(Retrofit.TAG, "rename "+ journalFile + " to "+ journalFileBackup);
       fileSystem.rename(journalFile, journalFileBackup);
@@ -579,6 +587,12 @@ public final class DiskLruCache implements Closeable, Flushable {
     return size;
   }
 
+  /**
+   *  写好数据，一定不要忘记commit操作对数据进行提交,不然数据在dirty文件中，而clean文件不会有,读写分离
+   * @param editor
+   * @param success
+   * @throws IOException
+   */
   synchronized void completeEdit(Editor editor, boolean success) throws IOException {
     Entry entry = editor.entry;
     if (entry.currentEditor != editor) {
@@ -604,7 +618,9 @@ public final class DiskLruCache implements Closeable, Flushable {
       if (success) {
         if (fileSystem.exists(dirty)) {
           File clean = entry.cleanFiles[i];
+          // 数据转移到clean文件，删除dirty文件
           fileSystem.rename(dirty, clean);
+          Log.i(Retrofit.TAG, "数据转移到clean文件，删除dirty文件 rename dirty:"+ dirty.getName() + " to clean : " + clean.getName());
           long oldLength = entry.lengths[i];
           long newLength = fileSystem.size(clean);
           entry.lengths[i] = newLength;
@@ -624,7 +640,7 @@ public final class DiskLruCache implements Closeable, Flushable {
       journalWriter.writeUtf8(entry.key);
       entry.writeLengths(journalWriter);
       journalWriter.writeByte('\n');
-      Log.i(Retrofit.TAG, "completeEdit write to CLEAN ...key:"+entry.key);
+      Log.i(Retrofit.TAG, "completeEdit write to journal file CLEAN ...key:"+entry.key);
       if (success) {
         entry.sequenceNumber = nextSequenceNumber++;
       }
@@ -677,13 +693,17 @@ public final class DiskLruCache implements Closeable, Flushable {
     }
 
     for (int i = 0; i < valueCount; i++) {
+        // 删除sdcard缓存文件两个, key.0, key.1
       fileSystem.delete(entry.cleanFiles[i]);
+        // 响应的siz而减少
       size -= entry.lengths[i];
       entry.lengths[i] = 0;
     }
 
     redundantOpCount++;
+      // 相对应的往档案文件journal里面添加一个REMOVE标识
     journalWriter.writeUtf8(REMOVE).writeByte(' ').writeUtf8(entry.key).writeByte('\n');
+      // 从内存删除对应的key
     lruEntries.remove(entry.key);
 
     if (journalRebuildRequired()) {
@@ -733,6 +753,7 @@ public final class DiskLruCache implements Closeable, Flushable {
 
   void trimToSize() throws IOException {
     Log.i(Retrofit.TAG, "size:"+size+", maxSize:"+maxSize);
+      // 当缓存文件超过设定的值(Okhttpclient设定maxSize),从linkedhashmap删除key,
     while (size > maxSize) {
       Entry toEvict = lruEntries.values().iterator().next();
       removeEntry(toEvict);
@@ -936,6 +957,7 @@ public final class DiskLruCache implements Closeable, Flushable {
           return null;
         }
         try {
+          //通过filesystem获取cleanFile的输入流, 读的干净文件的流
           return fileSystem.source(entry.cleanFiles[index]);
         } catch (FileNotFoundException e) {
           return null;
@@ -959,9 +981,12 @@ public final class DiskLruCache implements Closeable, Flushable {
         if (!entry.readable) {
           written[index] = true;
         }
+        // 注意写数据到文件是 temp文件
         File dirtyFile = entry.dirtyFiles[index];
         Sink sink;
         try {
+          //fileSystem获取dirtyFile文件的输出流,数据写入dirty file
+          Log.i(Retrofit.TAG, "获取此文件的输出流 : " + dirtyFile.getName());
           sink = fileSystem.sink(dirtyFile);
         } catch (FileNotFoundException e) {
           return Okio.blackhole();
@@ -979,9 +1004,11 @@ public final class DiskLruCache implements Closeable, Flushable {
     /**
      * Commits this edit so it is visible to readers.  This releases the edit lock so another edit
      * may be started on the same key.
+     * 写好数据，一定不要忘记commit操作对数据进行提交，我们要把dirtyFiles里面的内容
+     * 移动到cleanFiles里才能够让别的editor访问到
      */
     public void commit() throws IOException {
-      Log.i(Retrofit.TAG, "commit() ... ");
+      Log.i(Retrofit.TAG, "往temp文件写完数据后 commit ... ");
       synchronized (DiskLruCache.this) {
         if (done) {
           throw new IllegalStateException();
@@ -1030,8 +1057,12 @@ public final class DiskLruCache implements Closeable, Flushable {
 
     /** Lengths of this entry's files. */
     final long[] lengths;
-    final File[] cleanFiles;
-    final File[] dirtyFiles;
+
+    // 一个url产生的key对应着四个文件 key.0 key.1 key.0.temp, key.1.temp
+    // 0 文件保存header信息， 1 对应文件保存body数据
+    // 读写分离
+    final File[] cleanFiles;// 用来读取
+    final File[] dirtyFiles; // 用来写，成功后rename clean
 
     /** True if this entry has ever been published. */
     boolean readable;
@@ -1046,7 +1077,7 @@ public final class DiskLruCache implements Closeable, Flushable {
 
     Entry(String key) {
       this.key = key;
-
+        // 一个key对应这四个文件
       lengths = new long[valueCount];
       cleanFiles = new File[valueCount];
       dirtyFiles = new File[valueCount];
@@ -1068,7 +1099,7 @@ public final class DiskLruCache implements Closeable, Flushable {
 
     }
 
-    /** Set lengths using decimal numbers like "10123". */
+    /** Set lengths using decimal numbers like "10123" 像这样的832 21054*/
     void setLengths(String[] strings) throws IOException {
       if (strings.length != valueCount) {
         throw invalidLengths(strings);

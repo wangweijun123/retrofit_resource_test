@@ -625,7 +625,7 @@ public final class Cache implements Closeable, Flushable {
     }
 
     public void writeTo(DiskLruCache.Editor editor) throws IOException {
-      Log.i(Retrofit.TAG, "write header into xxx.0");
+      Log.i(Retrofit.TAG, "write header into ...");
       BufferedSink sink = Okio.buffer(editor.newSink(ENTRY_METADATA));
       Log.i(Retrofit.TAG, "url:"+url+", requestMethod:"+requestMethod+ ", varyHeaders.size():"+varyHeaders.size());
       sink.writeUtf8(url)

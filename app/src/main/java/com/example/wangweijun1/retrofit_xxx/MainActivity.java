@@ -23,6 +23,7 @@ import com.example.retrofit.SimpleService;
 import com.example.retrofit.StoreService;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.internal.io.FileSystem;
 import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
@@ -592,6 +594,37 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+    }
+    DiskLruCacheClenup diskLruCacheClenup = new DiskLruCacheClenup();
+    public void testCleanup(View v) {
+        diskLruCacheClenup.run();
+    }
+
+    public void testRename(View v) {
+        File from = new File(getExternalCacheDir(), "test.txt.temp");
+        Log.i(Retrofit.TAG,"from.exists() : " +from.exists());
+        if (!from.exists()) {
+            try {
+                from.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        File to = new File(getExternalCacheDir(), "test.txt");
+        if (!to.exists()) {
+            try {
+                to.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        Log.i(Retrofit.TAG,"to.exists() : " +to.exists());
+        try {
+            FileSystem.SYSTEM.rename(from, to);
+        }catch (IOException io){
+            io.printStackTrace();
+        }
+
     }
 
 
