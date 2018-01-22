@@ -155,7 +155,7 @@ public class StoreService {
     // String url = "http://mapi.letvstore.com/mapi/edit/recommend?pagefrom=1&pagesize=1&code=RANK_HOT";
 
     /**
-     * 同步请求
+     * 同步请求(商店服务器设置代理fiddler也是没有任何问题的)
      * @throws IOException
      */
     public static void doGetSync() throws IOException {
@@ -739,7 +739,7 @@ public class StoreService {
                 .baseUrl(URL_BASIC_SERVICE_TEST) // 由于后面定义了Url，所以这里的base url是没用
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
-        Call<ResponseBody> call = service.downloadFileWithDynamicUrlSync("http://10.11.146.202/mstore_api/mapi/app/apk/20/com.yqmb.mhqx.letv/254/download");
+        Call<ResponseBody> call = service.downloadFileWithDynamicUrlSync("http://g3.letv.cn/265/27/73/mstore/0/apkupload/jdrapp_1515814087151.apk");
         Callback<ResponseBody> callback = new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

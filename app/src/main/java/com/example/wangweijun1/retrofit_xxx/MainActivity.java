@@ -86,7 +86,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    /**
+     * 缓存测试
+     * @param v
+     */
     public void testCacheInterceptor(View v) {
         new Thread(new Runnable() {
             @Override
@@ -310,18 +313,18 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-//    public void JsonAndXmlConverters(View v) {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
+    public void JsonAndXmlConverters(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 //                try {
 //                    JsonAndXmlConverters.main();
 //                } catch (IOException e) {
 //                    e.printStackTrace();
 //                }
-//            }
-//        }).start();
-//    }
+            }
+        }).start();
+    }
 
 
     public void doPostForJson(View v) {
@@ -457,12 +460,12 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<User> list1 = new ArrayList<User>();
         ArrayList<User> list2 = list1;
-        Log.i("wang", "list1.equals(list2) :" +list1.equals(list2));
+        Log.i("wang", "list1.equals(list2) :" +list1.equals(list2));//true 先比较list是否为同一个对象
         User u = new User();
         list1.add(u);
-        ArrayList<User> list3 = new ArrayList<User>();
+        ArrayList<User> list3 = new ArrayList<User>();//再比较里面的元素的是否一致
         list3.add(u);
-        Log.i("wang", "list1.equals(list3):" + list1.equals(list3));
+        Log.i("wang", "list1.equals(list3):" + list1.equals(list3));// true
     }
 
 

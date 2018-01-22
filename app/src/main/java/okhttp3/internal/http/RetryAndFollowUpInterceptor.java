@@ -113,7 +113,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
 
     int followUpCount = 0;
     Response priorResponse = null;
-    while (true) {
+    while (true) {//
       Log.i(Retrofit.TAG, "RetryAndFollow  canceled:"+canceled);
       if (canceled) {
         streamAllocation.release();
@@ -167,7 +167,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
                     .build())
             .build();
       }
-      // 重定向的判断followUpRequest
+      // 重定向的判断followUpRequest不
       Request followUp = followUpRequest(response);
       Log.i(Retrofit.TAG, "followUp:"+followUp + ", forWebSocket:"+forWebSocket);
       if (followUp == null) {
@@ -332,7 +332,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
         if (!method.equals("GET") && !method.equals("HEAD")) {
           return null;
         }
-        // fall-through
+        // fall-through 重定向 301, 302, 获取header中location url构建一个新的请求
       case HTTP_MULT_CHOICE:
       case HTTP_MOVED_PERM:
       case HTTP_MOVED_TEMP:
@@ -377,7 +377,7 @@ public final class RetryAndFollowUpInterceptor implements Interceptor {
 
         return requestBuilder.url(url).build();
 
-      case HTTP_CLIENT_TIMEOUT:
+      case HTTP_CLIENT_TIMEOUT:// 重试，不需要改变request的
         // 408's are rare in practice, but some servers like HAProxy use this response code. The
         // spec says that we may repeat the request without modifications. Modern browsers also
         // repeat the request (even non-idempotent ones.)

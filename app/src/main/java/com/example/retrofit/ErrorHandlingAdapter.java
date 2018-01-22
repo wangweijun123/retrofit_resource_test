@@ -19,15 +19,14 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executor;
+
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 import retrofit2.Callback;
-import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 
 /**
@@ -158,7 +157,7 @@ public final class ErrorHandlingAdapter {
   public static void main(String... args) {
     Retrofit retrofit = new Retrofit.Builder()
         .baseUrl("http://httpbin.org")
-        .addCallAdapterFactory(new ErrorHandlingCallAdapterFactory())
+        .addCallAdapterFactory(new ErrorHandlingCallAdapterFactory())// 自定义call factory
         .addConverterFactory(GsonConverterFactory.create())
         .build();
 

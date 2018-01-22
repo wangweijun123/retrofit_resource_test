@@ -86,7 +86,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
    * 释放realse连接，断开握手
    * 应用层sockt，所以有可能是SslSocket
    */
-  private Socket socket;// 可能是rawSocket, 也可能是sslSocket
+  private Socket socket;// 应用层的socket, 协议是http的话就是rawSocket, 协议是https的话就是sslSocket
   private Handshake handshake;
   private Protocol protocol;
   private Http2Connection http2Connection;
@@ -297,7 +297,7 @@ public final class RealConnection extends Http2Connection.Listener implements Co
       // Force handshake. This can throw!
         // 如果没有CA认证过的https请求，这里会报错， (设置代理CA认证的证书也报错)
       // Trust anchor for certification path not found.
-      Log.i(Retrofit.TAG,"startHandshake ...");
+      Log.i(Retrofit.TAG,"startHandshake ...只有再https协议下才嗲用sslSocket.startHandshake,如果设置了代理，这里回报错");
       sslSocket.startHandshake();
       Log.i(Retrofit.TAG,"startHandshake finised");
       Handshake unverifiedHandshake = Handshake.get(sslSocket.getSession());

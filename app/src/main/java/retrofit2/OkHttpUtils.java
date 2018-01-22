@@ -85,6 +85,9 @@ public class OkHttpUtils {
         return mCacheOkHttpClient;
     }
 
+    /**
+     * http dns 自己做域名解析，吧域名发送到服务端，返回ip列表，使用ip访问
+     */
     Dns HTTP_DNS = new Dns() {
         @Override
         public List<InetAddress> lookup(String hostname) throws UnknownHostException {
