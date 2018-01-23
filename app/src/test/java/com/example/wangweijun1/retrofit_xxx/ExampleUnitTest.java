@@ -3,6 +3,8 @@ package com.example.wangweijun1.retrofit_xxx;
 import org.junit.Test;
 
 import java.nio.charset.Charset;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -39,5 +41,23 @@ public class ExampleUnitTest {
         DiskLruCacheClenup diskLruCacheClenup = new DiskLruCacheClenup();
 
         diskLruCacheClenup.run();
+    }
+
+    @Test
+    public void testHashcode() throws Exception {
+        Set<Person> set = new HashSet<Person>();
+        Person p1 = new Person(11, 1, "张三");
+        Person p2 = new Person(12, 1, "李四");
+        Person p3 = new Person(11, 1, "张三");
+        Person p4 = new Person(11, 1, "李四");
+        //只验证p1、p3
+        System.out.println("p1 == p3? :" + (p1 == p3));
+        System.out.println("p1.equals(p3)?:" + p1.equals(p3));
+        System.out.println("-----------------------分割线--------------------------");
+        set.add(p1);
+        set.add(p2);
+        set.add(p3);// 这里是没添加进去的
+        set.add(p4);
+        System.out.println("set.size()=" + set.size());
     }
 }

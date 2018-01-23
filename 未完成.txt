@@ -1,7 +1,46 @@
-1 RetryAndFollowUpInterceptor  重试与重定向的逻辑还没测试
+1 RetryAndFollowUpInterceptor  重试(不改变request url)与重定向(code 301或者302, 获取header中location,重新生成request)的逻辑还没测试
 
 2 单向列表，双向列表未测试 segment Segment, SegmentPool, ConnectionPool管理连接的生命周期
+模拟单向与双向
 
-3 hashcode 作用
+单向列表,单向循坏列表,双向列表,双向循坏列表
+
+单向的节点(Node)只有一个next指针,双向有prev与next指针,双向与单向由单个节点区分，都得
+维护first与last节点
+
+Queue是单向，Deque是双向
+LinkedList 是双向列表
+
+循坏就是就是把first节点与last节点连接起来
+
+
+
+3 hashcode() 作用
+
+判断两个对象是否相等 {
+  第一步: 先判断hashcode()的返回值,这是缓存，所以快(在集合(特别是大数据量)添加元素的时候,需要判断该元素
+         是否已经存在)
+  第二部: 调用equals()来判断
+}
+
+1、判断两个对象的hashcode是否相等，若不等，则认为两个对象不等，完毕，若相等，则比较equals。
+2、若两个对象的equals不等，则可以认为两个对象不等，否则认为他们相等。
+
+
+(HashSet, HashMap), 另外还有一个HashTable(里面的方法同步了)
+
+List, Set 两个集合, 继承接口Collection, HashMap不是哦
+
+list 有序的,可以重复
+
+Set 无序的，不可以重复(底层HashMap实现)
+
+set.add(e) 其实是调用hashMap.put(e, XXXX),常量XXXX,元素作为key,如果key是同一个，那就会被覆盖，
+所以集合里面有且只有一个
+
+
+模拟 LinkedList, 模拟单向与双向列表
+
+
 
 
