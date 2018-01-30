@@ -165,7 +165,7 @@ public class StoreService {
                 .client(OkHttpUtils.getInstance().getOkHttpClient())
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
-        // pagefrom=1&pagesize=1&code=RANK_HOT";
+//         pagefrom=1&pagesize=1&code=RANK_HOT";
         Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
         Response<MyResp> resp = call.execute();
         MyResp list = resp.body();
@@ -237,6 +237,21 @@ public class StoreService {
      * @throws IOException
      */
     public static void testCacheInterceptor(Context context) throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(OkHttpUtils.getInstance().getCacheOkHttpClient())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        // pagefrom=1&pagesize=1&code=RANK_HOT";
+        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Response<MyResp> resp = call.execute();
+        MyResp list = resp.body();
+        Log.i(Retrofit.TAG, "list status:"+list.status);
+    }
+
+
+    public static void testCustomCacheInterceptor(Context context) throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URL_BASIC_SERVICE_TEST)
                 .addConverterFactory(GsonConverterFactory.create())

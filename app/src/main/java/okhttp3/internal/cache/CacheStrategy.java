@@ -241,8 +241,8 @@ public final class CacheStrategy {
       Log.i(Retrofit.TAG,"freshMillis + maxStaleMillis == "+(freshMillis + maxStaleMillis));
       Log.i(Retrofit.TAG, "responseNoCache:"+responseNoCache+", expire:"+expire);
       // test 使用缓存
-      expire = true;
-      Log.i(Retrofit.TAG, "使用缓存，测试阶段");
+//      expire = true;
+//      Log.i(Retrofit.TAG, "使用缓存，测试阶段");
       if (!responseNoCache && expire) {
         Response.Builder builder = cacheResponse.newBuilder();
         if (ageMillis + minFreshMillis >= freshMillis) {

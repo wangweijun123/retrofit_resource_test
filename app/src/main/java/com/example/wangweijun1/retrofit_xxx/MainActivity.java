@@ -190,6 +190,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void testBaiduHttpsByHttpUrlconnection(View v) {
+        try {
+            SimpleService.testBaiduHttpsByHttpUrlconnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     /**
      * 客户端使用证书测试 https
      * @param v
