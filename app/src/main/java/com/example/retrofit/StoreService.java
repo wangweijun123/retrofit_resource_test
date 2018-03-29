@@ -70,6 +70,10 @@ public class StoreService {
         @GET("mapi/edit/recommend")
         Call<MyResp> doGet(@Query("pagefrom") String pagefrom, @Query("pagesize") String pagesize, @Query("code") String code);
 
+        @Headers("Cache-Control: public, max-age=60")
+        @GET("mapi/edit/recommend")
+        Call<MyResp> doGet2(@Query("pagefrom") String pagefrom, @Query("pagesize") String pagesize, @Query("code") String code);
+
         // // http://123.125.91.30/api34/mapi/coop/business
         @GET("api34/mapi/coop/business")
         Call<MyCache> doTestCacheInterceptor();
@@ -77,8 +81,6 @@ public class StoreService {
 
         @GET("helloworld.txt")
         Call<String> doTestHttpsCacheInterceptor();
-
-
 
         @GET("mapi/edit/recommend")
         Call<MyResp> doGetByMap(@QueryMap Map<String, String> pagefrom);
@@ -259,7 +261,7 @@ public class StoreService {
                 .build();
         StoreApi service = retrofit.create(StoreApi.class);
         // pagefrom=1&pagesize=1&code=RANK_HOT";
-        Call<MyResp> call = service.doGet("1", "1", "RANK_HOT");
+        Call<MyResp> call = service.doGet2("1", "1", "RANK_HOT");
         Response<MyResp> resp = call.execute();
         MyResp list = resp.body();
         Log.i(Retrofit.TAG, "list status:"+list.status);

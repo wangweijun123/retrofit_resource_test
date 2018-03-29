@@ -59,6 +59,7 @@ public class OkHttpUtils {
 
         mCacheOkHttpClient = new OkHttpClient.Builder()
                 .cache(new Cache(new File("/storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache"), cacheSize))
+                .addNetworkInterceptor(new CacheControlInterceptor())
                 .build();
     }
 

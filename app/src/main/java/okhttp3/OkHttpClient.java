@@ -470,7 +470,7 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     int pingInterval;
 
     public Builder() {
-      dispatcher = new Dispatcher();
+      dispatcher = new Dispatcher();// Dispatcher是它的属性
       protocols = DEFAULT_PROTOCOLS;
       connectionSpecs = DEFAULT_CONNECTION_SPECS;
       eventListenerFactory = EventListener.factory(EventListener.NONE);

@@ -45,8 +45,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         }
-
-
     }
 
     /**
@@ -102,6 +100,20 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
+    public void testCustomCacheInterceptor(View v) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    StoreService.testCustomCacheInterceptor(getApplicationContext());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
 
     public void testHttpsCacheInterceptor(View v) {
         new Thread(new Runnable() {

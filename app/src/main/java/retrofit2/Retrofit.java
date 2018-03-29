@@ -133,6 +133,7 @@ public final class Retrofit {
     if (validateEagerly) {
       eagerlyValidateMethods(service);
     }
+    // jdk 动态代理
     return (T) Proxy.newProxyInstance(service.getClassLoader(), new Class<?>[] { service },
         new InvocationHandler() {
           private final Platform platform = Platform.get();

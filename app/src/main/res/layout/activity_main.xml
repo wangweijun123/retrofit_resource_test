@@ -34,6 +34,14 @@
             android:text="缓存http测试" />
 
         <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="testCustomCacheInterceptor"
+            android:text="缓存http测试(没网使用cache，否则根据客户端自定义的时间来判断是否请求网络)" />
+
+
+
+        <Button
             android:id="@+id/button12123"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

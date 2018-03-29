@@ -13,7 +13,9 @@
 5, 连接池(add, remove, cleanup)
 ConnectionPool {
 
-    Deque<RealConnection> deque;
+    Deque<RealConnection> connections = new ArrayDeque()<>;
+
+    Executorservice servie;// 清理僵尸连接
 }
 
 第一，连接池与OkHttpClient实例保持一致，是它的属性，
@@ -25,7 +27,7 @@ ConnectionPool {
 okhttp {
 1, 连接
 2, cache
-3, http, https, h2, spdy
+3, http, https, http2.0, spdy
 }
 
 
@@ -35,7 +37,6 @@ okhttp {
 1  OKHttpClient (Builder模式, 静态内部类，拥有与外部类同样属性)
 1.1  拥有很多的系统组件，也就是成员变量(dispatcher, cache, interceptor ....)
 1.2 核心方法就只有一个newCall，call = client.newCall(request);
-
 
 
 HTTP的那些事
@@ -55,8 +56,8 @@ tunnel 隧道 : 基于http协议建立TCP连接，发送非http协议的数据�
 proxy:
 代理作用:
 CDN : 提供访问速度
-抓包 (注意https443 抓包，需要安装抓包工具的证书，让系统信任才行)
-翻墙 : 客户不能访问，代理能访问，所以呵呵
+抓包 (注意https 443端口号 抓包，需要安装抓包工具的证书，让系统信任才行)
+翻墙 : 客户不能直接访问，代理能访问，所以呵呵
 防火墙: 所有流量全部经过代理
 
 代理与反向代理
@@ -65,7 +66,7 @@ CDN : 提供访问速度
 
 反向代理 : 代理服务器处理客户端的请求,隐藏目标服务器ip
 
-socket编程不基于任何协议，也就是任何协议都ok,协议自己定制
+socket编程不基于任何协议，也就是任何协议都ok,协议自己定制 (dlna，手机控制tv)
 
 
 "IP地址+端口号"来区分不同的服务的。Web服务、FTP服务
@@ -88,7 +89,7 @@ socket编程不基于任何协议，也就是任何协议都ok,协议自己定�
 第三方 aar与主项目融合, apk打包流程, SynchronousQueue 的测试
 
 
-4 拦截器链条(责任链模式,每一个interceptor单一职责)
+4 拦截器链条(责任链模式,每一个interceptor单一职责,把创建号的对象提供给下一个对象使用)
 
 
 每个拦截器实现单一功能,
@@ -111,7 +112,7 @@ Segment 双向列表
 5   cache
 
 http 报文 {
-    header(头部) body(主体)
+    request line 请求行  header(头部) body(主体)
 }
 
 一个key 对应着四个文件  key.0  key.1  key.0.tmp  key.1.tmp
@@ -121,6 +122,7 @@ http 报文 {
 写的是dirty, 也就是key.0.tmp  key.1.tmp, 成功后rename clean
 
 目的就是读写分离
+
 threadpool 中一个线程
 
 cleanupRunnable {
@@ -136,12 +138,20 @@ retrofit 使用 ：
 1, 定义api 接口
 2, build Retrofit实例,传入 url, json 解析, okhttpclient 单例, 调用create, 反射实例化api接口
 实例, 调用接口，产生一个retrofit2.OkhttpCall(包装okhttp.Call)
-3, 调用call中execute(), enqune(), 进入拦截器链条处理call(对一次请求的封装,属性request,okhttpclient)
+3, 调用call中execute(), enqueue(), 进入拦截器链条处理call(对一次请求的封装,属性request,okhttpclient)
 
 4, parse(ok_response)返回retrofit.Response对象,可以使用的对象
 
 连接池{threadpool.execute(runnable)}, DiskLruCache{threadpool.execute(runnable)}
 
+
+retrofit 做的事情
+
+1, jdk动态代理实现你写的接口
+
+2, 对接口函数的解析(注解的解析)
+
+3, 解析okhttp传回来的原始字符串
 
 
 
