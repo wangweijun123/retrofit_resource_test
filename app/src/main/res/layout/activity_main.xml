@@ -162,7 +162,11 @@
             android:onClick="doPostJson2"
             android:text="post json 2数据" />
 
-
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="sanjiaoshou"
+            android:text="三角兽" />
 
         <Button
             android:id="@+id/button14"

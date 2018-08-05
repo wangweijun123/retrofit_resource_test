@@ -357,6 +357,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void sanjiaoshou(View v) {
+        StoreService.sanjiaoshou();
+    }
 
     public void volatileTest(View v) {
         Counter.main();

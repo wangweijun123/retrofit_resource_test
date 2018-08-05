@@ -3,6 +3,8 @@ package com.example.retrofit;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.wangweijun1.retrofit_xxx.AuthClientDemo;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import java.io.File;
@@ -110,6 +112,10 @@ public class StoreService {
         @Headers("Content-Type: application/json")
         @POST
         Call<String> doPostJson2(@Url String url, @Body String jsonBody);
+
+        @Headers("Content-Type: application/json")
+        @POST
+        Call<String> sanjiaoshou(@Url String url, @Body String jsonBody);
 
         @FormUrlEncoded
         @POST("mapi/edit/postrecommend")
@@ -444,6 +450,77 @@ public class StoreService {
             }
         };
         call.enqueue(callback);
+    }
+
+    public static void sanjiaoshou() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST) // 由于后面定义了Url，所以这里的base url是没用
+                .addConverterFactory(new ToStringConverterFactory())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+        //       http://phoneapi.sanjiaoshou.com/nlp
+        Call<String> call = service.
+                sanjiaoshou("http://triophone.sanjiaoshou.net/nlp",
+                        buildSanjiaoshouJson());
+        Callback<String> callback = new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                Log.i(Retrofit.TAG, response.body());
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                t.printStackTrace();
+                Log.i(Retrofit.TAG, "onFailure status");
+            }
+        };
+        call.enqueue(callback);
+    }
+
+    public static String buildSanjiaoshouJson() {
+        /*JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("userId", "trio");
+        jsonObject.addProperty("query", "我想去看无问西东");
+        jsonObject.addProperty("fromApp", "com.example.package");
+        jsonObject.addProperty("longitude", "16.4071700000");
+        jsonObject.addProperty("latitude", "39.9046900000");
+        return jsonObject.toString();*/
+
+        /*{"userId":"trio",
+        "query":"我想去看无问西东",
+        "fromApp":"com.example.package",
+        "longitude":"116.4071700000",
+        "latitude":"39.9046900000"}*/
+
+
+
+        Gson gson = new Gson();
+        AuthClientDemo authClientDemo = new AuthClientDemo();
+
+        Long requestTime = 0L;
+        String timeStamp = null;
+        String signature = null;
+        String strJson = null;
+
+        Map<String, String> requestMap = new HashMap<>();
+        // /nlp 接口示例
+        requestMap.put("query", "我在五道口看战狼2");
+        requestMap.put("appId", AuthClientDemo.appId);
+        requestMap.put("userId", "trio");
+
+        requestMap.put("deviceId", "865611030080897");
+        requestTime = System.currentTimeMillis() / 1000;
+        timeStamp = String.valueOf(requestTime);
+        requestMap.put("timestamp", timeStamp);
+        signature = AuthClientDemo.genSignature(AuthClientDemo.appKey, timeStamp, AuthClientDemo.SERVICE_NLP);
+        requestMap.put("sig", signature);
+        requestMap.put("fromApp", "com.qiku.smartsearch");
+        requestMap.put("latitude", "40.607182");
+        requestMap.put("longitude", "118.484954");
+        requestMap.put("gpsType", "GCJ02");
+
+        strJson = gson.toJson(requestMap);
+        Log.i(Retrofit.TAG, "strJson :"+strJson);
+        return strJson;
     }
 
     static String bowlingJson(String player1, String player2) {
