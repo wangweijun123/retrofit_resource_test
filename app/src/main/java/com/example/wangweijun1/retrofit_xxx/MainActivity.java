@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    StoreService.doGetSync();
+//                    StoreService.doGetSync();
 //                    SimpleService.httpsRequest();
 //                    SimpleService2.syncRequestString();
 //                    MyService.test();
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 //                    MyService.testByQueryMap();
 //                    MyService.doPost();
 //                    MyService.testPostFile();
+                    StoreService.doGetSyncReturnObj();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.MediaType;
@@ -71,6 +72,12 @@ public class StoreService {
 
         @GET("mapi/edit/recommend")
         Call<MyResp> doGet(@Query("pagefrom") String pagefrom, @Query("pagesize") String pagesize, @Query("code") String code);
+
+        @GET("mapi/edit/recommend")
+        Call<IResponse<RankListModel>> doGetReturnObj(@Query("pagefrom") String pagefrom,
+                           @Query("pagesize") String pagesize,
+                           @Query("code") String code);
+
 
         @Headers("Cache-Control: public, max-age=60")
         @GET("mapi/edit/recommend")
@@ -178,6 +185,33 @@ public class StoreService {
         Response<MyResp> resp = call.execute();
         MyResp list = resp.body();
         Log.i(Retrofit.TAG, "list status:"+list.status);
+    }
+
+    public static void doGetSyncReturnObj() throws IOException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_BASIC_SERVICE_TEST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(OkHttpUtils.getInstance().getOkHttpClient())
+                .build();
+        StoreApi service = retrofit.create(StoreApi.class);
+//         pagefrom=1&pagesize=1&code=RANK_HOT";
+        Call<IResponse<RankListModel>> call = service.doGetReturnObj("1", "1", "RANK_HOT");
+        Response<IResponse<RankListModel>> resp = call.execute();
+        IResponse<RankListModel> iResponse = resp.body();
+        Log.i(Retrofit.TAG, "msg:"+iResponse.getMsg()+"");
+        RankListModel rankListModel = iResponse.getEntity();
+        Log.i(Retrofit.TAG, "mseid:"+rankListModel.mseid);
+        List<RankListMiddle> ranklist = rankListModel.ranklist;
+        if (ranklist != null && ranklist.size() > 0) {
+            RankListMiddle rankListMiddle = ranklist.get(0);
+            Log.i(Retrofit.TAG, "pagesize:"
+                    +rankListMiddle.pagesize + ", "+rankListMiddle.total);
+            List<BaseModel> items = rankListMiddle.items;
+            for (int i = 0; i < items.size(); i++) {
+                Log.i(Retrofit.TAG, items.get(i).toString());
+            }
+        }
+
     }
 
 

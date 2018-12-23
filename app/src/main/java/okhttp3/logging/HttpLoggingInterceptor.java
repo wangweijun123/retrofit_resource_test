@@ -257,6 +257,7 @@ public final class HttpLoggingInterceptor implements Interceptor {
 
         if (contentLength != 0) {
           logger.log("");
+          logger.log("返回的json是在这里打印出来的...");
           logger.log(buffer.clone().readString(charset));
         }
 
