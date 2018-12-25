@@ -1,0 +1,87 @@
+{
+  "msg": "",
+  "code": 2000,
+  "entity": {
+    "ranklist": [
+      {
+        "editorcomment": "",
+        "img": "",
+        "total": 100,
+        "code": "RANK_HOT",
+        "subname": "",
+        "name": "\u6700\u70ED\u699C",
+        "pagesize": 1,
+        "pageBgColor": null,
+        "pagefrom": 1,
+        "items": [
+          {
+            "tvappid": -1,
+            "adinstallurl": "",
+            "superscript": "",
+            "official": 0,
+            "pic": {
+              "url": ""
+            },
+            "source": "cpa_leeco",
+            "accommodable": 1,
+            "editorcomment": "UC\u5C0F\u6E38\u620F\uFF0C\u95EF\u5173\u8D62\u94B1\u64A9\u59B9\u53BB\uFF01",
+            "score": 3.8,
+            "showtime": -1,
+            "price": 0.1,
+            "salesoff": 1,
+            "model": "item",
+            "id": 131187,
+            "downloadcount": 31114712,
+            "tag": "\u6D4F\u89C8\u5668,\u5DE5\u5177,\u7F51\u7EDC,\u5B89\u5168,\u641C\u7D22",
+            "adclickurl": "",
+            "zancount": 0,
+            "ad": 3001,
+            "streamid": "",
+            "downloadurl": "https:\/\/g3.letv.cn\/276\/3\/62\/mstore\/0\/apkupload\/UCBrowser_V12.2.4.1004_1545359996903.apk?platid=9&splatid=901&platid=9&splatid=901",
+            "actionurl": "",
+            "version": "12.2.4.1004",
+            "adtrackurl": "",
+            "bucket": "",
+            "purchased": 0,
+            "size": 47512298,
+            "originpkgname": "",
+            "name": "UC\u6D4F\u89C8\u5668",
+            "adeid": "",
+            "subcategoryid": 760013,
+            "reid": "",
+            "diffdownloadurl": "",
+            "detailtype": "",
+            "eid": "",
+            "ispay": 1,
+            "diffsize": -1,
+            "trigger_str": "",
+            "icon": {
+              "url": "http:\/\/i3.letvimg.com\/lc03_search\/201810\/16\/19\/19\/368c0360d7f24b338012f1c67f4d1b70.png"
+            },
+            "adid": "",
+            "datatype": "app",
+            "firstpublish": 0,
+            "hasgift": 0,
+            "versioncode": 1004,
+            "seq": 1,
+            "categoryid": 76,
+            "adexposeurl": "",
+            "coupon": 0,
+            "appName": "UC\u6D4F\u89C8\u5668",
+            "subname": null,
+            "packagename": "com.UCMobile",
+            "hasaction": 0,
+            "superscriptimg": {
+              "url": ""
+            },
+            "experiment_str": "",
+            "diffeconomizesize": -1
+          }
+        ]
+      }
+    ],
+    "mseid": "8026d628700c2042f2b12190b522dc60",
+    "redenvelope": "0"
+  },
+  "status": "SUCC"
+}

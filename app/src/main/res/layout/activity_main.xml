@@ -305,5 +305,13 @@
             android:layout_height="wrap_content"
             android:onClick="testRename"
             android:text="rename测试" />
+
+        <Button
+            android:id="@+id/parseReturnJson"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="parseReturnJson"
+            android:text="解析返回json" />
+
     </LinearLayout>
 </ScrollView>

@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -684,5 +685,17 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return false;
+    }
+
+    public void parseReturnJson(View v) {
+        try {
+            InputStream inputStream = getAssets().open("json_return.txt");
+            byte buffer[] = new byte[8*1024];
+            int numb = inputStream.read(buffer);
+            String result = new String(buffer, 0, numb, "utf-8");
+            Log.i("wang","result:"+result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
