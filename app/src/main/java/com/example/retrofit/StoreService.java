@@ -252,6 +252,7 @@ public class StoreService {
             Callback<MyResp> callback = new Callback<MyResp>() {
                 @Override
                 public void onResponse(Call<MyResp> call, Response<MyResp> response) {
+
                     MyResp list = response.body();
                     Log.i(Retrofit.TAG, "tid:"+Thread.currentThread().getId());
                     Log.i(Retrofit.TAG, response.headers().toString());

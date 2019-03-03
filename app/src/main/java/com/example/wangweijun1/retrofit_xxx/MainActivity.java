@@ -14,13 +14,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
+import com.example.retrofit.BaseModel;
 import com.example.retrofit.Crawler;
 import com.example.retrofit.DynamicBaseUrl;
 import com.example.retrofit.ErrorHandlingAdapter;
 import com.example.retrofit.HTTPSUtils;
+import com.example.retrofit.IResponse;
+import com.example.retrofit.RankListMiddle;
+import com.example.retrofit.RankListModel;
 import com.example.retrofit.SimpleMockService;
 import com.example.retrofit.SimpleService;
 import com.example.retrofit.StoreService;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -694,6 +700,21 @@ public class MainActivity extends AppCompatActivity {
             int numb = inputStream.read(buffer);
             String result = new String(buffer, 0, numb, "utf-8");
             Log.i("wang","result:"+result);
+            // good
+            IResponse<RankListModel> iResponse =  new Gson().fromJson(result, new TypeToken<IResponse<RankListModel>>() {
+            }.getType());
+            RankListModel rankListModel = iResponse.getEntity();
+            Log.i(Retrofit.TAG, "mseid:"+rankListModel.mseid);
+            List<RankListMiddle> ranklist = rankListModel.ranklist;
+            if (ranklist != null && ranklist.size() > 0) {
+                RankListMiddle rankListMiddle = ranklist.get(0);
+                Log.i(Retrofit.TAG, "pagesize:"
+                        +rankListMiddle.pagesize + ", "+rankListMiddle.total);
+                List<BaseModel> items = rankListMiddle.items;
+                for (int i = 0; i < items.size(); i++) {
+                    Log.i(Retrofit.TAG, items.get(i).toString());
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
