@@ -1,12 +1,15 @@
 package com.example.wangweijun1.retrofit_xxx;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.FileObserver;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -28,11 +31,23 @@ import com.example.retrofit.StoreService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.CharBuffer;
+import java.nio.IntBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -635,7 +650,7 @@ public class MainActivity extends AppCompatActivity {
         diskLruCacheClenup.run();
     }
 
-    public void testRename(View v) {
+    public void testRename(View v) {// /storage/emulated/0/Android/data/com.example.wangweijun1.retrofit_xxx/cache/test.txt.temp
         File from = new File(getExternalCacheDir(), "test.txt.temp");
         Log.i(Retrofit.TAG,"from.exists() : " +from.exists());
         if (!from.exists()) {
@@ -662,6 +677,158 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    File logFile = null;
+    File monitorSelfWrited = null;
+    FileObserver fileObserver;
+    FileObserver uploadfileObserver;
+    File uploadDir;
+    public void initMonitorFile(View view) {
+        logFile = new File(getExternalCacheDir(), "log.txt");
+        monitorSelfWrited = getExternalCacheDir();
+
+        uploadDir = new File(getExternalCacheDir(), "upload");
+        if (!uploadDir.exists()) {
+            uploadDir.mkdir();
+        }
+    }
+    /**
+     * 多进程写文件(stream map)（写完转移到单进程上报目录），单进程上报(监听上报目录)
+     *
+     *
+     * @param view
+     */
+    public void monitorSP(View view) {
+        // 监听本进程自己log文件的目录, 如果是监听文件，文件必须存在哈
+        fileObserver = new FileObserver(monitorSelfWrited.getAbsolutePath()) {
+            @Override
+            public void onEvent(int event, @android.support.annotation.Nullable String path) {
+                Log.i(Retrofit.TAG,"event="+event+" " + path); // 2, 32, 2, 8
+                if (event == FileObserver.CLOSE_WRITE) {
+                    Log.i(Retrofit.TAG, "写完了哈, 开始移动");
+                    //
+                    try {
+                        FileSystem.SYSTEM.rename(logFile, new File(uploadDir, "upload.txt"));
+                        Log.i(Retrofit.TAG, "移动成功");
+                    }catch (IOException io){
+                        io.printStackTrace();
+                    }
+                }
+            }
+        };
+
+        uploadfileObserver = new FileObserver(uploadDir.getAbsolutePath()) {
+            @Override
+            public void onEvent(int event, @android.support.annotation.Nullable String path) {
+                // upload event=128 upload.txt
+                Log.i(Retrofit.TAG,"upload event="+event+" " + path); // 2, 32, 2, 8
+            }
+        };
+
+        fileObserver.startWatching();
+        uploadfileObserver.startWatching();
+
+        Log.i(Retrofit.TAG,"startWatching success ");
+    }
+    public void writeFileEvent(View view) {
+
+        String content = "Hello World !!";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                Files.write(Paths.get(logFile.getAbsolutePath()), content.getBytes());
+                Log.i(Retrofit.TAG,"write success ");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+//            testStreamWrite();
+            testMappedWrite();
+        }
+    }
+
+    public void testStreamWrite() {
+        try {
+            long starttime = System.currentTimeMillis();
+            Log.i(Retrofit.TAG,"file :" +logFile.getAbsolutePath());
+            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(logFile)));
+            for(int i = 0; i < 20; i++){
+                dos.writeInt(i);
+            }
+            if(dos != null){
+                dos.flush();// 一定要flush一下哈，当你立马就要读取的时候
+                dos.close();
+            }
+            long endtime = System.currentTimeMillis();
+            Log.i(Retrofit.TAG,"testStreamWrite:"+(endtime-starttime)+"ms");
+        }catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * 使用map写文件，监听的文件夹始终都没有event 8的信号，也就是没有关闭stream
+     * XLOG。写log，内存
+     */
+    public void testMappedWrite() {
+        long starttime = System.currentTimeMillis();
+        RandomAccessFile randomAccessFile = null;
+        try {
+            randomAccessFile = new RandomAccessFile(logFile, "rw");
+            FileChannel fc = randomAccessFile.getChannel();
+            IntBuffer ib = fc.map(FileChannel.MapMode.READ_WRITE, 0, 10*(4))
+                    .asIntBuffer();
+            for (int i = 0; i < 10; i++) {
+                ib.put(i);
+            }
+            randomAccessFile.close();
+            if (fc != null) {
+                fc.close();
+                fc = null;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        long endtime = System.currentTimeMillis();
+        System.out.println("testMappedWrite:"+(endtime-starttime)+"ms");
+    }
+
+
+    public void avaibleMemory(View v) {
+        // Before doing something that requires a lot of memory,
+        // check to see whether the device is in a low memory state.
+        ActivityManager.MemoryInfo memoryInfo = getAvailableMemory();
+        System.out.println("availMem:"+memoryInfo.availMem +
+                ", totalMem:"+memoryInfo.totalMem + ", lowMemory:" + memoryInfo.lowMemory);
+        if (!memoryInfo.lowMemory) {
+            // Do memory intensive work ...
+            // availMem=2 147 405 824  totalMem=7 670 865 920   lowMemory=false
+        }
+        getAppMemory();
+    }
+    // Get a MemoryInfo object for the device's current memory status.
+    private ActivityManager.MemoryInfo getAvailableMemory() {
+        ActivityManager activityManager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+        return memoryInfo;
+    }
+
+    private void getAppMemory() {
+
+        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        //最大分配内存
+        int memory = activityManager.getMemoryClass();
+        System.out.println("memory: "+memory);
+        //最大分配内存获取方法2
+        float maxMemory = (float) (Runtime.getRuntime().maxMemory() * 1.0/ (1024 * 1024));
+        //当前分配的总内存
+        float totalMemory = (float) (Runtime.getRuntime().totalMemory() * 1.0/ (1024 * 1024));
+        //剩余内存
+        float freeMemory = (float) (Runtime.getRuntime().freeMemory() * 1.0/ (1024 * 1024));
+        System.out.println("maxMemory: "+maxMemory);
+        System.out.println("totalMemory: "+totalMemory);
+        System.out.println("freeMemory: "+freeMemory);
+    }
 
     public static Map<String,Integer> getAllLocalSimpleBaseAppsMap(Context context) {
         String selfPackageName = context.getPackageName();
@@ -719,4 +886,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+
 }
+
