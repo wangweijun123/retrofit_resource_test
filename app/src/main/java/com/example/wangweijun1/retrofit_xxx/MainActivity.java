@@ -515,6 +515,10 @@ public class MainActivity extends AppCompatActivity {
         Log.i("wang", "list1.equals(list3):" + list1.equals(list3));// true
     }
 
+    public void webviewTest(View view) {
+        startActivity(new Intent(getApplicationContext(), WebActivity.class));
+    }
+
 
     class User{
         int id;

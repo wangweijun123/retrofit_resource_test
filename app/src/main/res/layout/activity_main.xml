@@ -313,5 +313,11 @@
             android:onClick="parseReturnJson"
             android:text="解析返回json" />
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="webviewTest"
+            android:text="加载本地(sdcard/assert)中的html" />
+
     </LinearLayout>
 </ScrollView>
